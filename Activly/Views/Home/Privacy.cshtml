@@ -1,0 +1,85 @@
+﻿@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<h1>@ViewData["Title"]</h1>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activly</title>
+
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCntWicX66RDSMyWciSgmZYTLJOBsQOsxo&callback=initMap" async defer></script>
+
+    <style>
+        
+        #map {
+            height: 800px; 
+            width: 100%; 
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Google Map</h3>
+        <div id="map"></div> 
+    </div>
+
+    <script>
+        let test1;
+        let test2;
+        let map; 
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendPosition, handleError);
+            } else {
+                console.error("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function sendPosition(position) {
+            test1 = position.coords.latitude;
+            test2 = position.coords.longitude;
+            initMap();
+        }
+
+        function handleError(error) {
+            console.error("Error getting location:", error.message);
+            initMap();
+        }
+
+        function initMap() {
+            const location = { lat: test1 || 53.428792, lng: test2 || 14.562893 };
+
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: location
+            });
+
+            
+            new google.maps.Marker({
+                position: location,
+                map: map
+            });
+
+            
+            map.addListener("click", (event) => {
+                addMarker(event.latLng);
+            });
+        }
+
+        function addMarker(location) {
+            new google.maps.Marker({
+                position: location,
+                map: map,
+                title: "Wydarzenie sportowe"
+            });
+        }
+
+        getLocation();
+    </script>
+</body>
