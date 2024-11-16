@@ -2,7 +2,257 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+
+
+<head>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCntWicX66RDSMyWciSgmZYTLJOBsQOsxo&callback=initMap" async defer></script>
+    <style>
+       #map {
+                    height: 700px; 
+                    width: 100%; 
+        }
+
+        .modal {
+            display: none; /* Modal jest początkowo ukryty */
+            position: fixed;
+            z-index: 1000; /* Zapewnia, że modal będzie na wierzchu */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Przezroczysty tło */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Szerokość modalu */
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            z-index: 1001; /* Zapewnia, że przycisk będzie na wierzchu */
+        }
+
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+        
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+
+    
+</head>
+<body>
+    
+    <button id="logoutButton" onclick="handleLogout()" style="display:block;">Log out</button>
+    <p id="userDisplay">Checking login status...</p>
+    
+
+
+    <button id="loginBtn">Open Login/Register Modal</button>
+
+
+
+
+    <div id="loginModal" class="modal">
+        
+        <div id="errorMessage" style="color: red; margin-top: 10px;"></div> 
+        <div id="successMessage" style="display: none; color: green; margin-top: 10px;"></div>
+
+        <div class="modal-content">
+            <span class="close" id="loginClose" onclick="closeLoginModal()">&times;</span>
+            <h2 id="modalTitle">Login</h2>
+
+            <form id="loginForm" style="display: block;" method="post" action="https://localhost:7109/api/credentials" onsubmit="handleLogin(event)">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" name="login" required>
+
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" name="password" required>
+
+                <button type="submit">Login</button>
+            </form>
+
+            <form id="registerForm" style="display: none;" method="post" action="https://localhost:7109/api/credentials" onsubmit="handleRegister(event)">
+                <label for="registerUsername">Username</label>
+                <input type="text" id="registerUsername" name="login" required>
+
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" name="password" required>
+
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+
+                <button type="submit">Register</button>
+            </form>
+
+            <script>
+
+                let userName = null;
+
+
+                document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+                document.addEventListener('DOMContentLoaded', fetchUserName);
+
+                function closeLoginModal() {
+                    document.getElementById('loginModal').style.display = 'none';
+                }
+                
+                function handleLogin(event) {
+                    event.preventDefault(); 
+
+                    const formData = new FormData(event.target); 
+                    const loginData = {}; 
+
+
+                    formData.forEach((value, key) => {
+                        loginData[key] = value;
+                    });
+
+                    console.log('Login Data:', loginData); 
+
+                    fetch(event.target.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded' 
+                        },
+                        body: new URLSearchParams(loginData).toString() 
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw new Error(err.message); }); 
+                            }
+                            return response.json(); 
+                        })
+                        .then(data => {
+                            console.log('Login Success:', data); 
+                            const successMessage = document.getElementById('successMessage');
+                            successMessage.innerText = `Zalogowano jako ${data.login}`; 
+                            successMessage.style.display = 'block'; 
+
+
+                            const errorMessage = document.getElementById('errorMessage');
+                            errorMessage.innerText = '';
+
+                            
+                            return fetch('/api/session/save', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ UserName: data.login }) 
+                            });
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw new Error(err.message); });
+                            }
+                            return response.json(); 
+                        })
+                        .then(data => {
+                            console.log('Session saved:', data);
+
+                            const userDisplay = document.getElementById('userDisplay');
+                            userDisplay.innerText = `Logged as: ${data.login || data.UserName}`; 
+                            document.getElementById('logoutButton').style.display = 'block'; 
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            const errorMessage = document.getElementById('errorMessage');
+                            errorMessage.innerText = error.message;
+                        });
+                }
+
+                function handleRegister(event) {
+                    event.preventDefault(); 
+
+                    const formData = new FormData(event.target);
+                    const data = {
+                        login: formData.get('login'),
+                        password: formData.get('password'),
+                        confirmPassword: formData.get('confirmPassword')
+                    };
+
+                    fetch(event.target.action, {
+                        method: 'PUT', 
+                        headers: {
+                            'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify(data) 
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json(); 
+                    })
+                    .then(data => {
+                        console.log('Success:', data); 
+                    })
+                    .catch(error => {
+                        console.error('Error:', error); 
+                    });
+                }
+
+
+
+                window.onload = function () {
+                    fetchUserName(); 
+                };
+
+
+                function initMap() {
+                    
+                    var location = { lat: 53.428792, lng: 14.562893 };  
+
+                    
+                    map = new google.maps.Map(document.getElementById('map'), {
+                        zoom: 12,   
+                        center: location 
+                    });
+
+                    
+                    var marker = new google.maps.Marker({
+                        position: location,
+                        map: map
+                    });
+
+
+                }
+                      
+
+                window.onload = function () {
+                    initMap(); 
+                }
+            </script>
+
+            <p id="toggleText">Don't have an account? <span id="toggleBtn" style="color: blue; cursor: pointer;">Register here</span></p>
+        </div>
+
+    </div>
+
+
+    <div id="map"></div> 
+ 
+
+</body>
