@@ -5,7 +5,7 @@
 
 
 <head>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCntWicX66RDSMyWciSgmZYTLJOBsQOsxo&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=KLUCZ_API&callback=initMap" async defer></script>
     <style>
        #map {
                     height: 700px; 
@@ -82,7 +82,7 @@
             <span class="close" id="loginClose" onclick="closeLoginModal()">&times;</span>
             <h2 id="modalTitle">Login</h2>
 
-            <form id="loginForm" style="display: block;" method="post" action="https://localhost:7109/api/credentials" onsubmit="handleLogin(event)">
+            <form id="loginForm" style="display: block;" method="post" action="https://IPSERWERA/api/credentials" onsubmit="handleLogin(event)">
                 <label for="loginUsername">Username</label>
                 <input type="text" id="loginUsername" name="login" required>
 
@@ -92,7 +92,7 @@
                 <button type="submit">Login</button>
             </form>
 
-            <form id="registerForm" style="display: none;" method="post" action="https://localhost:7109/api/credentials" onsubmit="handleRegister(event)">
+            <form id="registerForm" style="display: none;" method="post" action="https://IPSERWERA/api/credentials" onsubmit="handleRegister(event)">
                 <label for="registerUsername">Username</label>
                 <input type="text" id="registerUsername" name="login" required>
 
