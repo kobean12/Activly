@@ -5,7 +5,7 @@
 
 
 <head>
-    <script src="https://maps.googleapis.com/maps/api/js?key=API_KLUCZ&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=KLUCZAPI&callback=initMap" async defer></script>
     <style>
        #map {
                     height: 700px; 
@@ -82,7 +82,7 @@
             <span class="close" id="loginClose" onclick="closeLoginModal()">&times;</span>
             <h2 id="modalTitle">Login</h2>
 
-            <form id="loginForm" style="display: block;" method="post" action="https://IPSERVERA/api/credentials" onsubmit="handleLogin(event)">
+            <form id="loginForm" style="display: block;" method="post" action="https://IPSERVER/api/credentials" onsubmit="handleLogin(event)">
                 <label for="loginUsername">Username</label>
                 <input type="text" id="loginUsername" name="login" required>
 
@@ -92,7 +92,7 @@
                 <button type="submit">Login</button>
             </form>
 
-            <form id="registerForm" style="display: none;" method="post" action="https://IPSERVERA/api/credentials" onsubmit="handleRegister(event)">
+            <form id="registerForm" style="display: none;" method="post" action="https://IPSERVER/api/credentials" onsubmit="handleRegister(event)">
                 <label for="registerUsername">Username</label>
                 <input type="text" id="registerUsername" name="login" required>
 
@@ -214,7 +214,46 @@
                     });
                 }
 
+                function fetchUserName() {
+                    fetch('/api/session/get') 
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('No username found in session');
+                            }
+                            return response.json(); 
+                        })
+                        .then(data => {
+                            userName = data.login; 
+                            const userDisplay = document.getElementById('userDisplay');
+                            userDisplay.innerText = `Logged as: ${userName}`; 
+                            document.getElementById('logoutButton').style.display = 'block'; 
+                        })
+                        .catch(error => {
+                            console.error('Error fetching username:', error);
+                            const userDisplay = document.getElementById('userDisplay');
+                            userDisplay.innerText = 'No user logged in'; 
+                            document.getElementById('logoutButton').style.display = 'none'; 
+                        });
+                }
 
+                function handleLogout() {
+                    fetch('/api/session/logout', {
+                        method: 'POST' 
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to log out');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log(data.message); 
+                            fetchUserName(); 
+                        })
+                        .catch(error => {
+                            console.error('Error during logout:', error);
+                        });
+                }
 
                 window.onload = function () {
                     fetchUserName(); 
