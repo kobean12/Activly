@@ -5,288 +5,535 @@
 
 
 <head>
-    <script src="https://maps.googleapis.com/maps/api/js?key=KLUCZAPI&callback=initMap" async defer></script>
-    <style>
-       #map {
-                    height: 700px; 
-                    width: 100%; 
-        }
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=APIKLUCZ&callback=initMap" async defer></script>
+</head>
 
-        .modal {
-            display: none; /* Modal jest początkowo ukryty */
-            position: fixed;
-            z-index: 1000; /* Zapewnia, że modal będzie na wierzchu */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Przezroczysty tło */
-        }
+<body>
 
-        .modal-content {
-            background-color: #fff;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; /* Szerokość modalu */
-            position: relative;
-        }
+    <div id="promptModal" class="modal">
+        <div class="modal-content">
+            <h4>Podaj szczegóły aktywności</h4>
 
-        .close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 30px;
-            font-weight: bold;
-            color: #aaa;
-            cursor: pointer;
-            z-index: 1001; /* Zapewnia, że przycisk będzie na wierzchu */
-        }
 
-            .close:hover,
-            .close:focus {
-                color: black;
-                text-decoration: none;
-                cursor: pointer;
+            <label for="activityName">Nazwa Aktywności:</label>
+            <input type="text" id="activityName" placeholder="Nazwa aktywności" value="Pinezka">
+
+
+            <label for="activityTime">Czas (HH:MM):</label>
+            <input type="time" id="activityTime" value="12:00">
+
+
+            <button id="confirmBtn">Zatwierdź</button>
+            <button id="closeModalBtn">Anuluj</button>
+        </div>
+    </div>
+
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <h4>Wybierz godzinę i aktywność</h4>
+        
+
+            <label for="activity">Nazwa Aktywności:</label>
+            <input type="text" id="activity" placeholder="Nazwa aktywności">
+
+
+            <label for="time">Godzina (HH:MM):</label>
+            <input type="time" id="time" required>
+
+            <label for="timeRange">Zakres Czasu (godziny):</label>
+            <input type="number" id="timeRange" placeholder="Zakres czasu w godzinach" min="1">
+
+
+            <button id="submitBtn">Zatwierdź</button>
+            <button id="cancelBtn">Anuluj</button>
+        </div>
+    </div>
+
+    <div id="mergeModal">
+        <p>Czy dodać Cię do wydarzenia zamiast tego?</p>
+        <button id="yesButton">Tak</button>
+        <button id="noButton">Nie</button>
+        <button id="closeModal">Zamknij</button>
+    </div>
+
+    <div class="buttonContainer">
+        <button onclick="openSearchModal()" class="openSearchButton">Open Search</button>
+        <button id="drawCirclesButton">Zasięg pinów</button>
+        <button id="refreshButton">Odswiez</button>
+    </div>
+
+    <div id="searchModal" style="display:none;">
+        <button class="close">&times;</button>
+        <input type="text" id="activitySearchText" placeholder="Search activity...">
+        <button id="searchButton">Szukaj</button>
+    </div>
+    
+    <div id="markerModal" class="modal">
+
+    <div class="modal-content">
+        <span class="close">&times;</span> 
+        <p id="markerTitle">Nazwa pinezki</p>
+        
+        <p><span id="markerAuthor"></span></p>
+        <p><span id="markerTime"></span></p>
+        <p><span id="markerActivity"></span></p>
+        
+        <p>Zainteresowania:</p>
+        <ul id="markerInterestList"></ul>
+            <button onclick="addInterestedUser()">Add Me as Interested</button>
+            <button onclick="removeInterestedUser()">Remove Me as Interested</button>
+    </div>
+
+</div>
+
+
+
+    <script>
+
+        ///Alert modal
+        let alertTime;
+        let alertTimeRange;
+        let activity;
+
+
+        const alertModal = document.getElementById("alertModal") 
+        const submitBtn = document.getElementById("submitBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        
+
+
+        cancelBtn.addEventListener("click", () => {
+            alertModal.style.display = "none";  
+        });
+        submitBtn.addEventListener("click", () => {
+            activity = document.getElementById("activity").value;
+            alertTime = document.getElementById("time").value;
+            alertTimeRange = document.getElementById("timeRange").value;
+
+            if (!activity || !time || !timeRange) {
+                alert("Proszę uzupełnić wszystkie pola!");
+                return;  
             }
 
-        
+            console.log("Aktywność:", activity);
+            console.log("Godzina:", alertTime);
+            console.log("Zakres Czasu:", alertTimeRange);
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
+            alertModal.style.display = "none";
+        });
+
+        //Zmienne 
+        let currentMarker = null;
+
+        let markers = [];
+        let map;
+        let mergeBool = false;
+        let test;
+
+
+        
+        //SEARCH PIN
+
+        document.getElementById('searchButton').addEventListener('click', searchActivityAndRemove);
+
+        document.querySelector('.close').addEventListener('click', closeSearchModal);
+
+        function closeSearchModal() {
+            const modal = document.getElementById('searchModal');
+            modal.style.display = 'none';
         }
-    </style>
 
-    
-</head>
-<body>
-    
-    <button id="logoutButton" onclick="handleLogout()" style="display:block;">Log out</button>
-    <p id="userDisplay">Checking login status...</p>
-    
+        function openSearchModal() {
+            const modal = document.getElementById('searchModal');
+            modal.style.display = 'block';
+        }
+
+        function searchActivityAndRemove() {
+            const activitySearchText = document.getElementById('activitySearchText').value.trim().toLowerCase();
+            if (!activitySearchText) {
+                alert("Please enter an activity name.");
+                return;
+            }
+
+            console.log("Searching for activity:", activitySearchText);
 
 
-    <button id="loginBtn">Open Login/Register Modal</button>
+            markers.forEach(pin => {
+                const activity = pin.activity ? pin.activity.toLowerCase() : "";
+                const time = pin.time ? pin.time.toLowerCase() : "";
+
+                console.log(`Checking pin: ${pin.title} with activity: ${activity}`);
 
 
+                if (!activity.includes(activitySearchText) && !time.includes(activitySearchText)) {
+                    console.log(`Removing pin: ${pin.title}`);
 
 
-    <div id="loginModal" class="modal">
+                    if (pin) {
+                        pin.setMap(null);
+                    } else {
+                        console.error(`No marker associated with pin: ${pin.title}`);
+                    }
+                }
+            });
+
+            closeSearchModal();
+        }
+
+        // ADD / REMOVE INTEREST
+
+        // Miejsce na add/remove interest
+
+        /// Login / Register
+
+        window.onload = function () {
+            fetchUserName();
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
         
-        <div id="errorMessage" style="color: red; margin-top: 10px;"></div> 
-        <div id="successMessage" style="display: none; color: green; margin-top: 10px;"></div>
+        function handleRegister(event) {
+            event.preventDefault();
 
-        <div class="modal-content">
-            <span class="close" id="loginClose" onclick="closeLoginModal()">&times;</span>
-            <h2 id="modalTitle">Login</h2>
+            const formData = new FormData(event.target);
+            const data = {
+                login: formData.get('login'),
+                password: formData.get('password'),
+                confirmPassword: formData.get('confirmPassword')
+            };
 
-            <form id="loginForm" style="display: block;" method="post" action="https://IPSERVER/api/credentials" onsubmit="handleLogin(event)">
-                <label for="loginUsername">Username</label>
-                <input type="text" id="loginUsername" name="login" required>
-
-                <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" name="password" required>
-
-                <button type="submit">Login</button>
-            </form>
-
-            <form id="registerForm" style="display: none;" method="post" action="https://IPSERVER/api/credentials" onsubmit="handleRegister(event)">
-                <label for="registerUsername">Username</label>
-                <input type="text" id="registerUsername" name="login" required>
-
-                <label for="registerPassword">Password</label>
-                <input type="password" id="registerPassword" name="password" required>
-
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required>
-
-                <button type="submit">Register</button>
-            </form>
-
-            <script>
-
-                let userName = null;
-
-
-                document.getElementById('loginForm').addEventListener('submit', handleLogin);
-
-                document.addEventListener('DOMContentLoaded', fetchUserName);
-
-                function closeLoginModal() {
-                    document.getElementById('loginModal').style.display = 'none';
-                }
+            fetch(event.target.action, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
                 
-                function handleLogin(event) {
-                    event.preventDefault(); 
+        //Mapa
 
-                    const formData = new FormData(event.target); 
-                    const loginData = {}; 
+        //Ładowanie mapy
+        function initMap() {
 
-
-                    formData.forEach((value, key) => {
-                        loginData[key] = value;
-                    });
-
-                    console.log('Login Data:', loginData); 
-
-                    fetch(event.target.action, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded' 
-                        },
-                        body: new URLSearchParams(loginData).toString() 
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(err => { throw new Error(err.message); }); 
-                            }
-                            return response.json(); 
-                        })
-                        .then(data => {
-                            console.log('Login Success:', data); 
-                            const successMessage = document.getElementById('successMessage');
-                            successMessage.innerText = `Zalogowano jako ${data.login}`; 
-                            successMessage.style.display = 'block'; 
+            var location = { lat: 53.428792, lng: 14.562893 };
 
 
-                            const errorMessage = document.getElementById('errorMessage');
-                            errorMessage.innerText = '';
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: location
+            });
 
-                            
-                            return fetch('/api/session/save', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({ UserName: data.login }) 
-                            });
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                return response.json().then(err => { throw new Error(err.message); });
-                            }
-                            return response.json(); 
-                        })
-                        .then(data => {
-                            console.log('Session saved:', data);
 
-                            const userDisplay = document.getElementById('userDisplay');
-                            userDisplay.innerText = `Logged as: ${data.login || data.UserName}`; 
-                            document.getElementById('logoutButton').style.display = 'block'; 
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            const errorMessage = document.getElementById('errorMessage');
-                            errorMessage.innerText = error.message;
-                        });
+            var marker = new google.maps.Marker({
+                position: location,
+                map: map
+            });
+
+
+            map.addListener('rightclick', async (event) => {
+
+                
+                currentLatLng = event.latLng;
+                if (!userName) {
+                    await fetchUserName();
                 }
 
-                function handleRegister(event) {
-                    event.preventDefault(); 
+                showPromptModal((isConfirmed, userActivity, userTime) => {
+                    if (isConfirmed) {
+                        activity = userActivity;
+                        timeStr = userTime;
+                        addMarker(currentLatLng, userName, timeStr, activity, null, true);
+                    }
+                });
+                
+            });
 
-                    const formData = new FormData(event.target);
-                    const data = {
-                        login: formData.get('login'),
-                        password: formData.get('password'),
-                        confirmPassword: formData.get('confirmPassword')
-                    };
+            fetchPins();
 
-                    fetch(event.target.action, {
-                        method: 'PUT', 
-                        headers: {
-                            'Content-Type': 'application/json' 
-                        },
-                        body: JSON.stringify(data) 
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+        }
+
+        let currentLatLng = null;
+        let timeStr = null;
+       
+        function fetchPins() {
+            fetch('https://IPSERWER/api/pin')
+                .then(response => response.json())
+                .then(pins => {
+                    console.log("Fetched pins:", pins);
+
+
+                    if (Array.isArray(pins)) {
+                        pins.forEach(pin => {
+                            console.log(`Pin data: Latitude = ${pin.latitude}, Longitude = ${pin.longitude}`);
+
+
+                            if (pin.latitude && pin.longitude) {
+
+                                const latitude = parseFloat(pin.latitude.replace(',', '.'));
+                                const longitude = parseFloat(pin.longitude.replace(',', '.'));
+
+
+                                if (!isNaN(latitude) && !isNaN(longitude)) {
+                                    const location = new google.maps.LatLng(latitude, longitude);
+
+
+
+
+                                    addMarker(
+                                        location,
+                                        pin.author || "Pinezka",
+                                        pin.time || "Brak godziny",
+                                        pin.activity || "Brak aktywności",
+                                        pin.interestedPeople || [],
+                                        false
+                                    );
+
+
+
+                                } else {
+                                    console.error("Invalid latitude or longitude:", pin.latitude, pin.longitude);
+                                }
+                            } else {
+                                console.error("Latitude or Longitude missing in pin data:", pin);
+                            }
+                        });
+                    } else {
+                        console.error("API response is not an array of pins.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching pins:', error);
+                });
+        }
+
+        function addMarker(location, author, time, activity, interests, fromUser) {
+            test = new google.maps.LatLng(location.lat, location.lng);
+            if (fromUser) {
+
+                
+                const radius = 1; 
+                const duplicateActivity = markers.some(marker => {
+                    const distance = getDistanceInKm(location.lat(), location.lng(), marker.position.lat(), marker.position.lng());
+                    currentMarker = marker;
+                    return distance <= radius && marker.activity === activity;
+                });
+
+                if (duplicateActivity) {
+
+                    alert(`W promieniu 1 km istnieje już pinezka z aktywnością: ${activity}. Czy zamiast tego, dodać cię do wydarzenia?`);
+
+                    showModal((mergeBool) => {
+                        console.log(mergeBool);
+
+                        if (mergeBool) {
+                            addInterestedUser();
+                            return; 
                         }
-                        return response.json(); 
-                    })
-                    .then(data => {
-                        console.log('Success:', data); 
-                    })
-                    .catch(error => {
-                        console.error('Error:', error); 
-                    });
-                }
 
-                function fetchUserName() {
-                    fetch('/api/session/get') 
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('No username found in session');
-                            }
-                            return response.json(); 
-                        })
-                        .then(data => {
-                            userName = data.login; 
-                            const userDisplay = document.getElementById('userDisplay');
-                            userDisplay.innerText = `Logged as: ${userName}`; 
-                            document.getElementById('logoutButton').style.display = 'block'; 
-                        })
-                        .catch(error => {
-                            console.error('Error fetching username:', error);
-                            const userDisplay = document.getElementById('userDisplay');
-                            userDisplay.innerText = 'No user logged in'; 
-                            document.getElementById('logoutButton').style.display = 'none'; 
+
+                        const marker = new google.maps.Marker({
+                            position: location,
+                            map: map,
+                            title: author
                         });
-                }
 
-                function handleLogout() {
-                    fetch('/api/session/logout', {
-                        method: 'POST' 
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Failed to log out');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log(data.message); 
-                            fetchUserName(); 
-                        })
-                        .catch(error => {
-                            console.error('Error during logout:', error);
+                        marker.author = author;
+                        marker.time = time;
+                        marker.activity = activity;
+                        marker.interests = interests;
+
+                        console.log("Marker data:", marker);
+
+
+                        marker.addListener('click', () => {
+                            openModal(marker);
                         });
-                }
 
-                window.onload = function () {
-                    fetchUserName(); 
-                };
+                        
+                        console.log("LatLng utworzony:", test);
 
+                        const authorTrim = String(author).trim(); 
+                        const timeTrim = String(time).trim(); 
+                        const activityTrim = String(activity).trim();
 
-                function initMap() {
-                    
-                    var location = { lat: 53.428792, lng: 14.562893 };  
+                        savePin(currentLatLng, authorTrim, timeTrim, activityTrim);
+                        markers.push(marker);
 
-                    
-                    map = new google.maps.Map(document.getElementById('map'), {
-                        zoom: 12,   
-                        center: location 
                     });
 
+                    return; 
+                }
+                else {
+                    const authorTrim = String(author).trim(); 
+                    const timeTrim = String(time).trim(); 
+                    const activityTrim = String(activity).trim();
+
                     
-                    var marker = new google.maps.Marker({
-                        position: location,
-                        map: map
-                    });
-
-
+                    console.log(test);
+                    savePin(currentLatLng, authorTrim, timeTrim, activityTrim);
                 }
-                      
+            }
+            
+            
+            const marker = new google.maps.Marker({
+                position: location,
+                map: map,
+                title: author
+            });
 
-                window.onload = function () {
-                    initMap(); 
-                }
-            </script>
+            marker.author = author;
+            marker.time = time;
+            marker.activity = activity;
+            marker.interests = interests;
 
-            <p id="toggleText">Don't have an account? <span id="toggleBtn" style="color: blue; cursor: pointer;">Register here</span></p>
-        </div>
+            console.log("Marker data:", marker);
+
+
+            marker.addListener('click', () => {
+                openModal(marker);
+            });
+
+
+            markers.push(marker);
+           
+            /* DO debugowania */
+
+
+
+        }
+
+        //Merge
+        function showModal(callback) {
+            document.getElementById('mergeModal').style.display = 'block';
+
+            const yesButton = document.getElementById('yesButton');
+            const noButton = document.getElementById('noButton');
+
+            yesButton.onclick = () => {
+                document.getElementById('mergeModal').style.display = 'none';
+                callback(true); 
+            };
+
+            noButton.onclick = () => {
+                document.getElementById('mergeModal').style.display = 'none';
+                callback(false); 
+            };
+        }
+
+        function askIfAddToEvent(answer) {
+            if (answer === 'tak') {
+                alert("Zostałeś dodany do wydarzenia!");
+                return true;
+            } else {
+                alert("Nie zostałeś dodany do wydarzenia.");
+                return false;
+            }
+        }
+
+        document.getElementById('closeModal').addEventListener('click', function () {
+            document.getElementById('modal').style.display = 'none'; 
+        });
+
+        //Pin okno
+
+        //Miejsce na okno pinu
+
+        //Pomocniczne funkcje
+
+        function getDistanceInKm(lat1, lng1, lat2, lng2) {
+            const R = 6371; 
+            const dLat = degreesToRadians(lat2 - lat1);
+            const dLng = degreesToRadians(lng2 - lng1);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; 
+        }
+
+        // Funkcja pomocnicza do konwersji stopni na radiany
+        function degreesToRadians(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+        const radius = 1; // 1 km
+
+        const nearbyMarkers = markers.filter(marker => {
+            const distance = getDistanceInKm(centerPoint.lat, centerPoint.lng, marker.lat, marker.lng);
+            return distance <= radius;
+        });
+
+        document.getElementById('drawCirclesButton').addEventListener('click', () => {
+
+            if (window.markerCircles) {
+                window.markerCircles.forEach(circle => circle.setMap(null));
+            }
+            window.markerCircles = [];
+
+
+            markers.forEach(marker => {
+
+                const circle = new google.maps.Circle({
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: "#FF0000",
+                    fillOpacity: 0.35,
+                    map: map, 
+                    center: marker.position, 
+                    radius: 1000, // Promień w metrach (1 km)
+                    clickable: false, 
+                });
+
+
+                window.markerCircles.push(circle);
+            });
+
+            console.log("Narysowano okręgi wokół wszystkich pinów.");
+        });
+
+        window.onload = function () {
+            initMap();
+        }
+
+        window.addEventListener('click', function (event) {
+            const markerModal = document.getElementById('markerModal');
+            const loginModal = document.getElementById('loginModal');
+
+
+            if (event.target === markerModal) {
+                closeMarkerModal();
+            }
+
+
+            if (event.target === loginModal) {
+                closeLoginModal();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchUserName);
+
+        document.getElementById('refreshButton').addEventListener('click', () => {
+            location.reload();  
+        });
+
+    </script>
+
+           
 
     </div>
 
