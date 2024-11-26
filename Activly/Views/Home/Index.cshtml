@@ -452,6 +452,66 @@
 
         //Miejsce na okno pinu
 
+document.querySelector('.close').addEventListener('click', closeMarkerModal);
+
+function openModal(marker) {
+    const modal = document.getElementById('markerModal');
+
+
+    document.getElementById('markerTitle').textContent = marker.title;
+    document.getElementById('markerAuthor').textContent = `Autor: ${marker.author || "Brak autora"}`;
+    document.getElementById('markerTime').textContent = `Godzina: ${marker.time || "Brak godziny"}`;
+    document.getElementById('markerActivity').textContent = `Aktywność: ${marker.activity || "Brak aktywności"}`;
+
+
+    const interestList = document.getElementById('markerInterestList');
+    interestList.innerHTML = '';
+    if (marker.interests && marker.interests.length > 0) {
+        marker.interests.forEach(interest => {
+            const listItem = document.createElement('li');
+            listItem.textContent = interest;
+
+
+            const avatar = document.createElement('img');
+            const avatarUrl = `https://IPSERWER/uploads/${interest}/avatar.png`;
+
+
+            const img = new Image();
+            img.onload = () => {
+                avatar.src = avatarUrl;
+                avatar.alt = `${interest}'s Avatar`;
+                avatar.style.width = '30px';
+                avatar.style.height = '30px';
+                avatar.style.marginLeft = '10px';
+                listItem.appendChild(avatar);
+            };
+            img.onerror = () => {
+
+                avatar.style.display = 'none';
+            };
+            img.src = avatarUrl;
+
+
+            interestList.appendChild(listItem);
+        });
+
+    } else {
+        const listItem = document.createElement('li');
+        listItem.textContent = "Brak zainteresowanych";
+        interestList.appendChild(listItem);
+    }
+
+    currentMarker = marker;
+
+
+    modal.style.display = 'block';
+}
+
+function closeMarkerModal() {
+    const markerModal = document.getElementById('markerModal');
+    markerModal.style.display = 'none';
+}
+
         //Pomocniczne funkcje
 
         function getDistanceInKm(lat1, lng1, lat2, lng2) {
