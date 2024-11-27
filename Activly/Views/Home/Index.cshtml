@@ -183,7 +183,65 @@
 
         // ADD / REMOVE INTEREST
 
-        // Miejsce na add/remove interest
+        function addInterestedUser() {
+    const latitude = currentMarker.position.lat();
+    const longitude = currentMarker.position.lng();
+    const author = currentMarker.author;
+    const user = userName;
+
+
+    fetch(https://IPSERVER/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(user)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to add user to interested list. Please try again.");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("User added to interested list successfully:", data);
+            alert("You have been added as an interested person!");
+        })
+        .catch(error => {
+            console.error("Error adding user to interested list:", error);
+            alert("Failed to add interest. Please try again later.");
+        });
+}
+
+function removeInterestedUser() {
+    const latitude = currentMarker.position.lat();
+    const longitude = currentMarker.position.lng();
+    const author = currentMarker.author;
+    const user = userName;
+
+
+    fetch(https://IPSERVER/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(user)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to remove user from interested list. Please try again.");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("User removed from interested list successfully:", data);
+            alert("You have been removed from the interested list!");
+        })
+        .catch(error => {
+            console.error("Error removing user from interested list:", error);
+            alert("Failed to remove user. Please try again later.");
+        });
+}
 
         /// Login / Register
 
