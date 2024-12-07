@@ -15,14 +15,19 @@
         <div class="modal-content">
             <h4>Podaj szczegóły aktywności</h4>
 
+            <label for="activityName">Wybierz Aktywność:</label>
+            <select id="activityName">
+                <option value="kosz">Koszykowka</option>
+                <option value="noga">Piłka nożna</option>
+                <option value="bieg">Bieganie</option>
+                <option value="inne">Inne</option>
+            </select>
 
-            <label for="activityName">Nazwa Aktywności:</label>
-            <input type="text" id="activityName" placeholder="Nazwa aktywności" value="Pinezka">
-
+            <label for="activityDate">Data (DD:MM:YYYY):</label>
+            <input type="date" id="activityDate" value="2024-12-01" />
 
             <label for="activityTime">Czas (HH:MM):</label>
             <input type="time" id="activityTime" value="12:00">
-
 
             <button id="confirmBtn">Zatwierdź</button>
             <button id="closeModalBtn">Anuluj</button>
@@ -33,17 +38,14 @@
         <div class="modal-content">
             <h4>Wybierz godzinę i aktywność</h4>
         
-
             <label for="activity">Nazwa Aktywności:</label>
             <input type="text" id="activity" placeholder="Nazwa aktywności">
-
 
             <label for="time">Godzina (HH:MM):</label>
             <input type="time" id="time" required>
 
             <label for="timeRange">Zakres Czasu (godziny):</label>
             <input type="number" id="timeRange" placeholder="Zakres czasu w godzinach" min="1">
-
 
             <button id="submitBtn">Zatwierdź</button>
             <button id="cancelBtn">Anuluj</button>
@@ -77,6 +79,7 @@
         
         <p><span id="markerAuthor"></span></p>
         <p><span id="markerTime"></span></p>
+        <p><span id="markerDate"></span></p>
         <p><span id="markerActivity"></span></p>
         
         <p>Zainteresowania:</p>
@@ -96,13 +99,12 @@
         let alertTimeRange;
         let activity;
 
+        const alertModal = document.getElementById("alertModal");
 
-        const alertModal = document.getElementById("alertModal") 
+        //const openModalBtn = document.getElementById("openModalBtn");
         const submitBtn = document.getElementById("submitBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         
-
-
         cancelBtn.addEventListener("click", () => {
             alertModal.style.display = "none";  
         });
@@ -116,9 +118,9 @@
                 return;  
             }
 
-            console.log("Aktywność:", activity);
-            console.log("Godzina:", alertTime);
-            console.log("Zakres Czasu:", alertTimeRange);
+            //console.log("Aktywność:", activity);
+            //console.log("Godzina:", alertTime);
+            //console.log("Zakres Czasu:", alertTimeRange);
 
             alertModal.style.display = "none";
         });
@@ -134,7 +136,6 @@
 
         
         //SEARCH PIN
-
         document.getElementById('searchButton').addEventListener('click', searchActivityAndRemove);
 
         document.querySelector('.close').addEventListener('click', closeSearchModal);
@@ -184,65 +185,68 @@
         // ADD / REMOVE INTEREST
 
         function addInterestedUser() {
-    const latitude = currentMarker.position.lat();
-    const longitude = currentMarker.position.lng();
-    const author = currentMarker.author;
-    const user = userName;
+            const latitude = currentMarker.position.lat();
+            const longitude = currentMarker.position.lng();
+            const author = currentMarker.author;
+            const user = userName;
 
 
-    fetch(https://IPSERVER/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(user)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Failed to add user to interested list. Please try again.");
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("User added to interested list successfully:", data);
-            alert("You have been added as an interested person!");
-        })
-        .catch(error => {
-            console.error("Error adding user to interested list:", error);
-            alert("Failed to add interest. Please try again later.");
-        });
-}
+            fetch(`https://SERVERIP/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(user)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to add user to interested list. Please try again.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("User added to interested list successfully:", data);
+                    alert("You have been added as an interested person!");
+                })
+                .catch(error => {
+                    console.error("Error adding user to interested list:", error);
+                    alert("Failed to add interest. Please try again later.");
+                });
+            location.reload();
+        }
 
-function removeInterestedUser() {
-    const latitude = currentMarker.position.lat();
-    const longitude = currentMarker.position.lng();
-    const author = currentMarker.author;
-    const user = userName;
+        function removeInterestedUser() {
+            const latitude = currentMarker.position.lat();
+            const longitude = currentMarker.position.lng();
+            const author = currentMarker.author;
+            const user = userName;
 
 
-    fetch(https://IPSERVER/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(user)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Failed to remove user from interested list. Please try again.");
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("User removed from interested list successfully:", data);
-            alert("You have been removed from the interested list!");
-        })
-        .catch(error => {
-            console.error("Error removing user from interested list:", error);
-            alert("Failed to remove user. Please try again later.");
-        });
-}
-
+            fetch(`https://SERVERIP/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(user)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to remove user from interested list. Please try again.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("User removed from interested list successfully:", data);
+                    alert("You have been removed from the interested list!");
+                })
+                .catch(error => {
+                    console.error("Error removing user from interested list:", error);
+                    alert("Failed to remove user. Please try again later.");
+                });
+            location.reload();
+        }
+        
+        
         /// Login / Register
 
         window.onload = function () {
@@ -282,6 +286,7 @@ function removeInterestedUser() {
                 });
         }
                 
+
         //Mapa
 
         //Ładowanie mapy
@@ -310,25 +315,117 @@ function removeInterestedUser() {
                     await fetchUserName();
                 }
 
-                showPromptModal((isConfirmed, userActivity, userTime) => {
+                showPromptModal((isConfirmed, userActivity, userTime, userDate) => {
                     if (isConfirmed) {
+                        date = userDate;
                         activity = userActivity;
                         timeStr = userTime;
-                        addMarker(currentLatLng, userName, timeStr, activity, null, true);
+                        addMarker(currentLatLng, userName, timeStr, activity, null, true , userDate);
                     }
                 });
                 
             });
 
+            map.addListener('mousedown', (event) => {
+                if (event.domEvent.button === 1) {  
+
+                    const latLng = event.latLng;
+
+                    const circle = new google.maps.Circle({
+                        strokeColor: "#0000FF", 
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: "#0000FF",    
+                        fillOpacity: 0.35,
+                        map: map,
+                        center: latLng,          
+                        radius: 1000,          
+                    });
+                    alertModal.style.display = "block"
+                }
+            });
+
+
             fetchPins();
+
+
+
 
         }
 
+
+
+        
         let currentLatLng = null;
         let timeStr = null;
-       
+        
+
+        function showPromptModal(callback) {
+            const promptModal = document.getElementById("promptModal");
+            const confirmBtn = document.getElementById("confirmBtn");
+            const closeModalBtn = document.getElementById("closeModalBtn");
+
+            promptModal.style.display = "block";
+
+            confirmBtn.onclick = () => {
+                const activityName = document.getElementById("activityName").value;
+                const activityTime = document.getElementById("activityTime").value;
+                const activityDate = document.getElementById("activityDate").value;
+
+                if (!activityName || !activityTime) {
+                    alert("Proszę wprowadzić nazwę aktywności i czas!");
+                    return;
+                }
+
+                promptModal.style.display = "none";
+                callback(true, activityName, activityTime, activityDate);
+            };
+
+            closeModalBtn.onclick = () => {
+                promptModal.style.display = "none";
+                callback(false);
+            };
+        }
+        function savePin(latLng, author, time, activity, date) {
+            console.log("savePin wywołana z danymi:", latLng);
+            const data = {
+                Latitude: latLng.lat(),
+                Longitude: latLng.lng(),
+                Author: author,
+                Time: time,
+                Activity: activity || 'Brak aktywności',
+                InterestedPeople: [],
+                Date: date
+            };
+
+            console.log("Dane do wysłania:", data);
+
+
+            fetch('https://SERVERIP/api/pin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        console.log('Pin saved successfully:', data);
+                    } else {
+                        console.error('Failed to save pin, no data returned');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving pin:', error);
+                });
+        }
+
+        
+
+
         function fetchPins() {
-            fetch('https://IPSERWER/api/pin')
+            fetch('https://SERVERIP/api/pin')
                 .then(response => response.json())
                 .then(pins => {
                     console.log("Fetched pins:", pins);
@@ -357,7 +454,8 @@ function removeInterestedUser() {
                                         pin.time || "Brak godziny",
                                         pin.activity || "Brak aktywności",
                                         pin.interestedPeople || [],
-                                        false
+                                        false,
+                                        pin.date
                                     );
 
 
@@ -378,12 +476,22 @@ function removeInterestedUser() {
                 });
         }
 
-        function addMarker(location, author, time, activity, interests, fromUser) {
+        function addMarker(location, author, time, activity, interests, fromUser, userDate) {
             test = new google.maps.LatLng(location.lat, location.lng);
+
+            let iconFileName = activity;
+
+            var customIcon = {
+                url: `https://SERVERIP/uploads/icons/${iconFileName}.png`,
+                scaledSize: new google.maps.Size(25, 40),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(20, 40)
+            };
+
             if (fromUser) {
 
                 
-                const radius = 1; 
+                const radius = 1;
                 const duplicateActivity = markers.some(marker => {
                     const distance = getDistanceInKm(location.lat(), location.lng(), marker.position.lat(), marker.position.lng());
                     currentMarker = marker;
@@ -399,13 +507,13 @@ function removeInterestedUser() {
 
                         if (mergeBool) {
                             addInterestedUser();
-                            return; 
+                            return;
                         }
-
 
                         const marker = new google.maps.Marker({
                             position: location,
                             map: map,
+                            icon: customIcon,
                             title: author
                         });
 
@@ -413,6 +521,7 @@ function removeInterestedUser() {
                         marker.time = time;
                         marker.activity = activity;
                         marker.interests = interests;
+                        marker.date = userDate;
 
                         console.log("Marker data:", marker);
 
@@ -421,35 +530,34 @@ function removeInterestedUser() {
                             openModal(marker);
                         });
 
-                        
+                       
                         console.log("LatLng utworzony:", test);
 
-                        const authorTrim = String(author).trim(); 
-                        const timeTrim = String(time).trim(); 
+                        const authorTrim = String(author).trim();
+                        const timeTrim = String(time).trim();
                         const activityTrim = String(activity).trim();
 
-                        savePin(currentLatLng, authorTrim, timeTrim, activityTrim);
+                        savePin(currentLatLng, authorTrim, timeTrim, activityTrim, userDate);
                         markers.push(marker);
 
                     });
 
-                    return; 
+                    return;
                 }
                 else {
-                    const authorTrim = String(author).trim(); 
-                    const timeTrim = String(time).trim(); 
+                    const authorTrim = String(author).trim();
+                    const timeTrim = String(time).trim();
                     const activityTrim = String(activity).trim();
 
-                    
                     console.log(test);
-                    savePin(currentLatLng, authorTrim, timeTrim, activityTrim);
+                    savePin(currentLatLng, authorTrim, timeTrim, activityTrim,userDate);
                 }
             }
-            
             
             const marker = new google.maps.Marker({
                 position: location,
                 map: map,
+                icon: customIcon,
                 title: author
             });
 
@@ -457,6 +565,7 @@ function removeInterestedUser() {
             marker.time = time;
             marker.activity = activity;
             marker.interests = interests;
+            marker.date = userDate;
 
             console.log("Marker data:", marker);
 
@@ -467,15 +576,12 @@ function removeInterestedUser() {
 
 
             markers.push(marker);
-           
-            /* DO debugowania */
-
-
 
         }
 
         //Merge
         function showModal(callback) {
+
             document.getElementById('mergeModal').style.display = 'block';
 
             const yesButton = document.getElementById('yesButton');
@@ -483,12 +589,12 @@ function removeInterestedUser() {
 
             yesButton.onclick = () => {
                 document.getElementById('mergeModal').style.display = 'none';
-                callback(true); 
+                callback(true);
             };
 
             noButton.onclick = () => {
                 document.getElementById('mergeModal').style.display = 'none';
-                callback(false); 
+                callback(false);
             };
         }
 
@@ -503,77 +609,76 @@ function removeInterestedUser() {
         }
 
         document.getElementById('closeModal').addEventListener('click', function () {
-            document.getElementById('modal').style.display = 'none'; 
+            document.getElementById('modal').style.display = 'none';
         });
 
         //Pin okno
 
-        //Miejsce na okno pinu
+        document.querySelector('.close').addEventListener('click', closeMarkerModal);
 
-document.querySelector('.close').addEventListener('click', closeMarkerModal);
-
-function openModal(marker) {
-    const modal = document.getElementById('markerModal');
+        function openModal(marker) {
+            const modal = document.getElementById('markerModal');
 
 
-    document.getElementById('markerTitle').textContent = marker.title;
-    document.getElementById('markerAuthor').textContent = `Autor: ${marker.author || "Brak autora"}`;
-    document.getElementById('markerTime').textContent = `Godzina: ${marker.time || "Brak godziny"}`;
-    document.getElementById('markerActivity').textContent = `Aktywność: ${marker.activity || "Brak aktywności"}`;
+            document.getElementById('markerTitle').textContent = marker.title;
+            document.getElementById('markerAuthor').textContent = `Autor: ${marker.author || "Brak autora"}`;
+            document.getElementById('markerTime').textContent = `Godzina: ${marker.time || "Brak godziny"}`;
+            document.getElementById('markerActivity').textContent = `Aktywność: ${marker.activity || "Brak aktywności"}`;
+            document.getElementById('markerDate').textContent = `Data: ${marker.date || "Brak daty"}`;
+
+            const interestList = document.getElementById('markerInterestList');
+            interestList.innerHTML = '';
+            if (marker.interests && marker.interests.length > 0) {
+                marker.interests.forEach(interest => {
+                    if (interest.trim() === '') return;
+                    const listItem = document.createElement('li');
+                    listItem.textContent = interest;
 
 
-    const interestList = document.getElementById('markerInterestList');
-    interestList.innerHTML = '';
-    if (marker.interests && marker.interests.length > 0) {
-        marker.interests.forEach(interest => {
-            const listItem = document.createElement('li');
-            listItem.textContent = interest;
+                    const avatar = document.createElement('img');
+                    const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
 
 
-            const avatar = document.createElement('img');
-            const avatarUrl = `https://IPSERWER/uploads/${interest}/avatar.png`;
+                    const img = new Image();
+                    img.onload = () => {
+                        avatar.src = avatarUrl;
+                        avatar.alt = `${interest}'s Avatar`;
+                        avatar.style.width = '30px';
+                        avatar.style.height = '30px';
+                        avatar.style.marginLeft = '10px';
+                        listItem.appendChild(avatar);
+                    };
+                    img.onerror = () => {
+
+                        avatar.style.display = 'none';
+                    };
+                    img.src = avatarUrl;
 
 
-            const img = new Image();
-            img.onload = () => {
-                avatar.src = avatarUrl;
-                avatar.alt = `${interest}'s Avatar`;
-                avatar.style.width = '30px';
-                avatar.style.height = '30px';
-                avatar.style.marginLeft = '10px';
-                listItem.appendChild(avatar);
-            };
-            img.onerror = () => {
+                    interestList.appendChild(listItem);
+                });
 
-                avatar.style.display = 'none';
-            };
-            img.src = avatarUrl;
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = "Brak zainteresowanych";
+                interestList.appendChild(listItem);
+            }
+
+            currentMarker = marker;
 
 
-            interestList.appendChild(listItem);
-        });
+            modal.style.display = 'block';
+        }
 
-    } else {
-        const listItem = document.createElement('li');
-        listItem.textContent = "Brak zainteresowanych";
-        interestList.appendChild(listItem);
-    }
-
-    currentMarker = marker;
-
-
-    modal.style.display = 'block';
-}
-
-function closeMarkerModal() {
-    const markerModal = document.getElementById('markerModal');
-    markerModal.style.display = 'none';
-}
+        function closeMarkerModal() {
+            const markerModal = document.getElementById('markerModal');
+            markerModal.style.display = 'none';
+        }
 
         //Pomocniczne funkcje
 
         function getDistanceInKm(lat1, lng1, lat2, lng2) {
-            const R = 6371; 
+            const R = 6371;
             const dLat = degreesToRadians(lat2 - lat1);
             const dLng = degreesToRadians(lng2 - lng1);
             const a =
@@ -581,14 +686,14 @@ function closeMarkerModal() {
                 Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) *
                 Math.sin(dLng / 2) * Math.sin(dLng / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; 
+            return R * c;
         }
 
-        // Funkcja pomocnicza do konwersji stopni na radiany
         function degreesToRadians(degrees) {
             return degrees * (Math.PI / 180);
         }
         const radius = 1; // 1 km
+
 
         const nearbyMarkers = markers.filter(marker => {
             const distance = getDistanceInKm(centerPoint.lat, centerPoint.lng, marker.lat, marker.lng);
@@ -612,11 +717,10 @@ function closeMarkerModal() {
                     fillColor: "#FF0000",
                     fillOpacity: 0.35,
                     map: map, 
-                    center: marker.position, 
-                    radius: 1000, // Promień w metrach (1 km)
-                    clickable: false, 
+                    center: marker.position,
+                    radius: 1000,
+                    clickable: false,
                 });
-
 
                 window.markerCircles.push(circle);
             });
@@ -632,11 +736,9 @@ function closeMarkerModal() {
             const markerModal = document.getElementById('markerModal');
             const loginModal = document.getElementById('loginModal');
 
-
             if (event.target === markerModal) {
                 closeMarkerModal();
             }
-
 
             if (event.target === loginModal) {
                 closeLoginModal();
@@ -646,17 +748,13 @@ function closeMarkerModal() {
         document.addEventListener('DOMContentLoaded', fetchUserName);
 
         document.getElementById('refreshButton').addEventListener('click', () => {
-            location.reload();  
+            location.reload();
         });
 
     </script>
 
-           
-
     </div>
-
 
     <div id="map"></div> 
  
-
 </body>
