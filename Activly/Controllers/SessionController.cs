@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System;
 
 namespace Activly.Controllers
 {
@@ -6,7 +8,6 @@ namespace Activly.Controllers
     [Route("api/session")]
     public class SessionController : ControllerBase
     {
-
         [HttpPost("save")]
         public IActionResult SaveUserName([FromBody] LoginModel model)
         {
@@ -15,62 +16,52 @@ namespace Activly.Controllers
                 return BadRequest(new { message = "Invalid login data. Username is required." });
             }
 
-
-            HttpContext.Session.SetString("UserName", model.UserName);
-
-            var userNameInSession = HttpContext.Session.GetString("UserName");
-
-            if (string.IsNullOrEmpty(userNameInSession))
+            Response.Cookies.Append("UserName", model.UserName, new CookieOptions
             {
-                return BadRequest(new { message = "Failed to save username in session" });
-            }
+                Expires = DateTimeOffset.UtcNow.AddDays(30),
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict 
+            });
 
-
-            return Ok(new { login = userNameInSession, message = "Login info saved in session successfully." });
+            return Ok(new { message = "Username saved in cookies successfully." });
         }
-
 
         [HttpGet("get")]
         public IActionResult GetUserName()
         {
             try
             {
-
-                var userName = HttpContext.Session.GetString("UserName");
+                var userName = Request.Cookies["UserName"];
 
                 if (string.IsNullOrEmpty(userName))
                 {
-
-                    return NotFound(new { message = "No username found in session." });
+                    return NotFound(new { message = "No username found in cookies." });
                 }
 
                 return Ok(new { login = userName });
             }
             catch (Exception ex)
             {
-
                 return StatusCode(500, new { message = $"An error occurred: {ex.Message}" });
             }
         }
-
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
             try
             {
-                HttpContext.Session.Clear(); 
+                Response.Cookies.Delete("UserName");
 
                 return Ok(new { message = "Logged out successfully." });
             }
             catch (Exception ex)
             {
-
                 return StatusCode(500, new { message = $"An error occurred during logout: {ex.Message}" });
             }
         }
     }
-
 
     public class LoginModel
     {
