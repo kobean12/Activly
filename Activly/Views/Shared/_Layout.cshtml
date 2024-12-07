@@ -3,11 +3,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Activly</title>
+    <title>@ViewData["Title"] - Activly2</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Activly.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Activly2.styles.css" asp-append-version="true" />
 </head>
+
+
+
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
@@ -23,13 +26,195 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Edit Profile</a>
                         </li>
                     </ul>
+                    <button id="logoutButton" onclick="handleLogout()" style="display:block;">Log out</button>
+                    <p id="userDisplay">Checking login status...</p>
+
+
+
+                    <button id="loginBtn">Log In</button>
+
+                    <div id="loginModal" class="modal">
+
+                        <div id="errorMessage" style="color: red; margin-top: 10px;"></div>
+                        <div id="successMessage" style="display: none; color: green; margin-top: 10px;"></div>
+
+
+                        <div class="modal-content">
+                            <span class="close" id="loginClose" onclick="closeLoginModal()">&times;</span>
+                            <h2 id="modalTitle">Login</h2>
+
+
+                            <form id="loginForm" style="display: block;" method="post" action="https://IPSERVER/api/credentials" onsubmit="handleLogin(event)">
+                                <label for="loginUsername">Username</label>
+                                <input type="text" id="loginUsername" name="login" required>
+
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="password" required>
+
+                                <button type="submit">Login</button>
+                            </form>
+
+                            <form id="registerForm" style="display: none;" method="post" action="https://IPSERVER/api/credentials" onsubmit="handleRegister(event)">
+                                <label for="registerUsername">Username</label>
+                                <input type="text" id="registerUsername" name="login" required>
+
+                                <label for="registerPassword">Password</label>
+                                <input type="password" id="registerPassword" name="password" required>
+
+                                <label for="confirmPassword">Confirm Password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" required>
+
+                                <button type="submit">Register</button>
+                            </form>
+                            <p id="toggleText">Don't have an account? <span id="toggleBtn" style="color: blue; cursor: pointer;">Register here</span></p>
+
+                        </div>
                 </div>
             </div>
         </nav>
     </header>
+
+        <script>
+        let userNamesave = null;
+
+
+            function handleLogin(event) {
+                event.preventDefault(); 
+
+                const formData = new FormData(event.target);
+                const loginData = {};
+
+                formData.forEach((value, key) => {
+                    loginData[key] = value;
+                });
+
+                console.log('Login Data:', loginData);
+
+                fetch(event.target.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams(loginData).toString() 
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.message); }); 
+                        }
+                        return response.json(); 
+                    })
+                    .then(data => {
+                        console.log('Login Success:', data); 
+                        const successMessage = document.getElementById('successMessage');
+                        successMessage.innerText = `Zalogowano jako ${data.login}`; 
+                        successMessage.style.display = 'block'; 
+
+                        const errorMessage = document.getElementById('errorMessage');
+                        errorMessage.innerText = '';
+
+
+
+                        const modallogin = document.getElementById("loginBtn");
+                        modallogin.style.display = "none"; 
+
+                        return fetch('/api/session/save', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ UserName: data.login })
+                        });
+
+
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => { throw new Error(err.message); });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Session saved:', data);
+
+                        const userDisplay = document.getElementById('userDisplay');
+                        userDisplay.innerText = `Logged as: ${data.login || data.UserName}`;
+                        document.getElementById('logoutButton').style.display = 'block'; 
+
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const errorMessage = document.getElementById('errorMessage');
+                        errorMessage.innerText = error.message; 
+                    });
+                location.reload();
+            }
+
+
+
+            function handleLogout() {
+                fetch('/api/session/logout', {
+                    method: 'POST'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to log out');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const modallogin = document.getElementById("loginBtn");
+                        modallogin.style.display = "inline";
+
+                        console.log(data.message); 
+                        fetchUserName(); 
+                    })
+                    .catch(error => {
+                        console.error('Error during logout:', error);
+                    });
+                location.reload();
+            }
+
+            function fetchUserName() {
+                fetch('/api/session/get')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('No username found in session');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        userNamesave = data.login;
+                        userName = data.login;
+                        const userDisplay = document.getElementById('userDisplay');
+                        userDisplay.innerText = `Logged as: ${userName}`;
+                        document.getElementById('logoutButton').style.display = 'block';
+                        document.getElementById('loginBtn').style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error fetching username:', error);
+                        const userDisplay = document.getElementById('userDisplay');
+                        userDisplay.innerText = 'No user logged in';
+                        document.getElementById('logoutButton').style.display = 'none';
+                    document.getElementById('loginBtn').style.display = 'blocky';
+                    });
+
+            }
+            function closeLoginModal() {
+                document.getElementById('loginModal').style.display = 'none';
+            }
+
+
+        window.onload = function () {
+
+            fetchUserName();
+        };
+        </script>
+
+
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -38,12 +223,15 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - Activly - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2024 - Activly2 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+
+
 </body>
 </html>
