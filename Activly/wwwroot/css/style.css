@@ -1,41 +1,38 @@
-﻿
 #map {
     height: 700px;
     width: 100%;
     border: 2px solid #444;
-    border-radius: 8px; 
+    border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .modal {
-    display: none; 
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); 
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
 .modal-content {
-    background-color: #2c2c2c; 
-    color: #fff; 
+    background-color: #2c2c2c;
+    color: #fff;
     margin: 10% auto;
     padding: 20px;
     border-radius: 8px;
-    width: 80%; 
-    max-width: 400px; 
+    width: 80%;
+    max-width: 400px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
-
 
 #modalTitle {
     text-align: center;
     font-size: 24px;
     margin-bottom: 20px;
 }
-
 
 .close {
     position: absolute;
@@ -46,10 +43,10 @@
     cursor: pointer;
 }
 
-    .close:hover,
-    .close:focus {
-        color: #fff;
-    }
+.close:hover,
+.close:focus {
+    color: #fff;
+}
 
 #loginForm,
 #registerForm {
@@ -58,12 +55,11 @@
     width: 100%;
 }
 
-
 label {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #ccc; 
+    color: #ccc;
 }
 
 input[type="text"],
@@ -71,24 +67,23 @@ input[type="password"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
-    background-color: #444; 
+    background-color: #444;
     border: 1px solid #666;
-    color: #fff; 
+    color: #fff;
     border-radius: 4px;
     font-size: 16px;
 }
 
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-        outline: none;
-        border-color: #1e90ff; 
-    }
-
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #1e90ff;
+}
 
 button[type="submit"] {
     width: 100%;
     padding: 12px;
-    background-color: #6c757d; 
+    background-color: #6c757d;
     color: white;
     font-size: 16px;
     border: none;
@@ -97,9 +92,9 @@ button[type="submit"] {
     transition: background-color 0.3s;
 }
 
-    button[type="submit"]:hover {
-        background-color: #5a6268;
-    }
+button[type="submit"]:hover {
+    background-color: #5a6268;
+}
 
 #errorMessage {
     color: red;
@@ -118,12 +113,11 @@ button[type="submit"] {
     padding: 10px;
     margin: 10px 0;
     font-size: 16px;
-    background-color: #444; 
-    color: #fff; 
+    background-color: #444;
+    color: #fff;
     border: 1px solid #555;
     border-radius: 4px;
 }
-
 
 button {
     padding: 10px 20px;
@@ -135,61 +129,56 @@ button {
     border-radius: 4px;
 }
 
-    button:hover {
-        background-color: #666;
-    }
-
+button:hover {
+    background-color: #666;
+}
 
 #searchModal {
-    display: none; 
+    display: none;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 300px;
     padding: 20px;
-    background-color: #333; 
+    background-color: #333;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     z-index: 1000;
-    color: #fff; 
+    color: #fff;
 }
 
+#searchModal .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #ccc;
+}
 
-    #searchModal .close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        color: #ccc; 
-    }
+#searchModal button {
+    background-color: #444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px;
+}
 
-
-    #searchModal button {
-        background-color: #444; 
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        padding: 10px;
-    }
-
-
-        #searchModal button:hover {
-            background-color: #555; 
-
-        }
+#searchModal button:hover {
+    background-color: #555;
+}
 
 body {
-    background-color: #121212; 
-    color: #fff; 
-    font-family: Arial, sans-serif; 
-    margin: 0; 
-    padding: 0; 
+    background-color: #121212;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 #profileForm {
@@ -199,46 +188,43 @@ body {
     color: #f8f9fa;
 }
 
-    #profileForm .form-group {
-        margin-bottom: 15px;
-    }
+#profileForm .form-group {
+    margin-bottom: 15px;
+}
 
-    #profileForm .form-control {
-        background-color: #444; 
-        color: #f8f9fa; 
-        border: 1px solid #666; 
-        border-radius: 4px;
-        padding: 10px;
-    }
+#profileForm .form-control {
+    background-color: #444;
+    color: #f8f9fa;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 10px;
+}
 
-        #profileForm .form-control:focus {
-            background-color: #555;
-            border-color: #007bff; 
-            color: #f8f9fa;
-        }
+#profileForm .form-control:focus {
+    background-color: #555;
+    border-color: #007bff;
+    color: #f8f9fa;
+}
 
-    #profileForm .btn-primary {
-        background-color: #007bff; 
-        border-color: #007bff;
-        color: white;
-    }
+#profileForm .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
 
-        #profileForm .btn-primary:hover {
-            background-color: #0056b3; 
-            border-color: #004085;
-        }
+#profileForm .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
 
-
-    #profileForm label {
-        color: #ddd;
-    }
-
+#profileForm label {
+    color: #ddd;
+}
 
 #preview {
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
-
 
 #profileForm select:focus,
 #profileForm input[type="number"]:focus {
@@ -247,13 +233,13 @@ body {
     color: #f8f9fa;
 }
 
-
 .openSearchButton {
     position: fixed;
     left: 1%;
 }
+
 .buttonContainer {
-    position: relative; 
+    position: relative;
     height: 40px;
 }
 
@@ -269,4 +255,83 @@ body {
     border-radius: 10px;
     text-align: center;
     z-index: 1000; /* Zapewnia, że modal jest na wierzchu */
+}
+
+#userDisplay {
+    color: #ddd;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 10px 0 0;
+    padding: 10px 0;
+}
+
+/* Footer Styles */
+.footer {
+    background-color: #222;
+    color: #ccc;
+    padding: 20px 0;
+    font-size: 14px;
+    text-align: center;
+}
+
+.footer .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer .footer-left p {
+    margin: 0;
+}
+
+.footer .footer-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.footer .social-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.footer .social-links li {
+    margin-left: 15px;
+}
+
+.footer .social-icon {
+    color: #ccc;
+    font-size: 20px; /* Wielkość ikony */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer .social-icon:hover {
+    color: #888; /* Nowy kolor hover dla ikon */
+}
+
+/* Dodatkowe style dla tekstu i linków w stopce */
+.footer .footer-links {
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.footer .footer-links a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer .footer-links a:hover {
+    color: #888; /* Nowy kolor hover dla linków */
+}
+
+.footer small {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
 }
