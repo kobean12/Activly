@@ -6,7 +6,7 @@
 
 <head>
     <link rel="stylesheet" href="/css/style.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key=APIKLUCZ&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=APIKEY&libraries=visualization&callback=initMap" async defer></script>
 </head>
 
 <body>
@@ -17,10 +17,10 @@
 
             <label for="activityName">Wybierz Aktywność:</label>
             <select id="activityName">
-                <option value="kosz">Koszykowka</option>
-                <option value="noga">Piłka nożna</option>
-                <option value="bieg">Bieganie</option>
-                <option value="inne">Inne</option>
+                <option value="Koszykowka">Koszykowka</option>
+                <option value="Pilka_nozna">Piłka nożna</option>
+                <option value="Bieganie">Bieganie</option>
+                <option value="Inne">Inne</option>
             </select>
 
             <label for="activityDate">Data (DD:MM:YYYY):</label>
@@ -33,7 +33,7 @@
             <button id="closeModalBtn">Anuluj</button>
         </div>
     </div>
-
+    
     <div id="alertModal" class="modal">
         <div class="modal-content">
             <h4>Wybierz godzinę i aktywność</h4>
@@ -63,12 +63,22 @@
         <button onclick="openSearchModal()" class="openSearchButton">Open Search</button>
         <button id="drawCirclesButton">Zasięg pinów</button>
         <button id="refreshButton">Odswiez</button>
+        <button id="markingModeButton">Tryb oznaczania</button>
+        <button id="savePointsButton">Gotowe</button>
+        <button id="getPointsButton">Obiekty sportowe</button>
+        <button id="toggleHeatmap">Pokaż Heatmapę</button>
     </div>
 
     <div id="searchModal" style="display:none;">
         <button class="close">&times;</button>
         <input type="text" id="activitySearchText" placeholder="Search activity...">
         <button id="searchButton">Szukaj</button>
+        <div id="activityButtons">
+            <button class="activityButton" data-activity="Koszykowka">Koszykowka</button>
+            <button class="activityButton" data-activity="Pilka_nozna">Pilka nozna</button>
+            <button class="activityButton" data-activity="Bieganie">Bieganie</button>
+            <button class="activityButton" data-activity="Inne">Inne</button>
+        </div>
     </div>
     
     <div id="markerModal" class="modal">
@@ -86,6 +96,8 @@
         <ul id="markerInterestList"></ul>
             <button onclick="addInterestedUser()">Add Me as Interested</button>
             <button onclick="removeInterestedUser()">Remove Me as Interested</button>
+        <p>Rezerwowi:</p>
+        <ul id="markerLobbyList"></ul>
     </div>
 
 </div>
@@ -94,17 +106,29 @@
 
     <script>
 
+        let heatmap = null;
+
+
+        document.querySelectorAll('.activityButton').forEach(button => {
+            button.addEventListener('click', function () {
+                const activityName = this.getAttribute('data-activity');
+                document.getElementById('activitySearchText').value = activityName;
+            });
+        });
+
+
         ///Alert modal
         let alertTime;
         let alertTimeRange;
         let activity;
 
-        const alertModal = document.getElementById("alertModal");
 
+        const alertModal = document.getElementById("alertModal");
         //const openModalBtn = document.getElementById("openModalBtn");
         const submitBtn = document.getElementById("submitBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         
+
         cancelBtn.addEventListener("click", () => {
             alertModal.style.display = "none";  
         });
@@ -118,9 +142,9 @@
                 return;  
             }
 
-            //console.log("Aktywność:", activity);
-            //console.log("Godzina:", alertTime);
-            //console.log("Zakres Czasu:", alertTimeRange);
+            console.log("Aktywność:", activity);
+            console.log("Godzina:", alertTime);
+            console.log("Zakres Czasu:", alertTimeRange);
 
             alertModal.style.display = "none";
         });
@@ -288,8 +312,106 @@
                 
 
         //Mapa
-
+        
         //Ładowanie mapy
+
+
+        let markingMode = false;
+        let points = [];
+
+        function drawCircle(location) {
+            const circle = new google.maps.Circle({
+                center: location,
+                radius: 5, // Promień w metrach, mała kropka
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.8,
+                map: map
+            });
+            points.push({ lat: location.lat(), lng: location.lng() });
+        }
+        document.getElementById('markingModeButton').addEventListener('click', function () {
+            markingMode = !markingMode;
+            this.textContent = markingMode ? 'Wyłącz tryb oznaczania' : 'Tryb oznaczania';
+        });
+
+        document.getElementById('savePointsButton').addEventListener('click', function () {
+            // Wysłanie danych na serwer
+            fetch('/api/Map/SavePoints', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ points: points.map(p => `${p.lat},${p.lng}`).join(';') })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    points = []; 
+
+                    location.reload(); 
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        function drawPolygon(points) {
+            const polygon = new google.maps.Polygon({
+                paths: points,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+            });
+
+            polygon.setMap(map);
+        }
+
+        document.getElementById('getPointsButton').addEventListener('click', function () {
+            console.log("Button 'Obiekty sportowe' clicked!");
+
+            fetch('/api/Map/GetPoints') 
+                .then(response => response.json())
+                .then(data => {
+                    
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data); 
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(','); 
+                                const lat = parseFloat(latStr.trim()); 
+                                const lng = parseFloat(lngStr.trim()); 
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null; 
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach(points => {
+                            drawPolygon(points);
+                        });
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        });
+
+
         function initMap() {
 
             var location = { lat: 53.428792, lng: 14.562893 };
@@ -306,6 +428,11 @@
                 map: map
             });
 
+            map.addListener('click', function (e) {
+                if (markingMode) {
+                    drawCircle(e.latLng);
+                }
+            });
 
             map.addListener('rightclick', async (event) => {
 
@@ -317,6 +444,7 @@
 
                 showPromptModal((isConfirmed, userActivity, userTime, userDate) => {
                     if (isConfirmed) {
+
                         date = userDate;
                         activity = userActivity;
                         timeStr = userTime;
@@ -327,19 +455,20 @@
             });
 
             map.addListener('mousedown', (event) => {
-                if (event.domEvent.button === 1) {  
+
+                if (event.domEvent.button === 1) { 
 
                     const latLng = event.latLng;
 
                     const circle = new google.maps.Circle({
-                        strokeColor: "#0000FF", 
+                        strokeColor: "#0000FF",  
                         strokeOpacity: 0.8,
                         strokeWeight: 2,
-                        fillColor: "#0000FF",    
+                        fillColor: "#0000FF",   
                         fillOpacity: 0.35,
                         map: map,
                         center: latLng,          
-                        radius: 1000,          
+                        radius: 1000,            // 1 km 
                     });
                     alertModal.style.display = "block"
                 }
@@ -349,12 +478,92 @@
             fetchPins();
 
 
+            ///
+            const heatmapData = [];
 
+            loadHeatmapData();
 
+            heatmap = new google.maps.visualization.HeatmapLayer({
+                data: heatmapData,
+                map: null, 
+                gradient: [
+                    'rgba(0, 255, 255, 0)', // Przezroczysty
+                    'rgba(0, 255, 255, 1)', // Jasny niebieski
+                    'rgba(0, 191, 255, 1)', // Niebieski
+                    'rgba(0, 127, 255, 1)', // Ciemniejszy niebieski
+                    'rgba(0, 0, 255, 1)',   // Głęboki niebieski
+                    'rgba(0, 0, 127, 1)',   // Ciemniejszy niebieski
+                    'rgba(127, 0, 255, 1)', // Fiolet
+                    'rgba(255, 0, 255, 1)'  // Różowy (najmocniejsza intensywność)
+                ],
+                radius: 30,  
+                opacity: 0.7
+            });
+            console.log('heatmapData:', heatmapData);
+        }
+        document.getElementById('toggleHeatmap').addEventListener('click', () => {
+            toggleHeatmap();
+        });
+
+        function loadHeatmapData() {
+            fetch('https://SERVERIP/api/pin/heatmap')
+                .then(response => response.json())
+                .then(data => {
+                    const heatmapData = [];
+
+                    data.forEach(item => {
+                        const lat = parseFloat(item.latitude.replace(',', '.'));  
+                        const lng = parseFloat(item.longitude.replace(',', '.')); 
+
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            const latLng = new google.maps.LatLng(lat, lng);
+                            heatmapData.push(latLng);
+                        } else {
+                            console.warn('Nieprawidłowe dane współrzędnych:', item);
+                        }
+                    });
+
+                    if (heatmapData.length > 0) {
+                        const heatmap = new google.maps.visualization.HeatmapLayer({
+                            data: heatmapData,
+                            map: map, 
+                        });
+                    } else {
+                        console.warn('Brak danych do wyświetlenia na heatmapie.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching heatmap data:', error);
+                });
+        }
+
+        function toggleHeatmap() {
+            if (!heatmap) {
+                console.error('Heatmap is not initialized.');
+                return;
+            }
+
+            if (heatmap.getMap()) {
+                heatmap.setMap(null);
+                document.getElementById('toggleHeatmap').textContent = 'Pokaż Heatmapę';
+            } else {
+                heatmap.setMap(map);
+                document.getElementById('toggleHeatmap').textContent = 'Ukryj Heatmapę';
+            }
         }
 
 
+        // Funkcja do aktywowania trybu dodawania punktów
+        function activateAddingMode() {
+            addingMode = true;
+            points = []; 
+            alert('Tryb dodawania punktów aktywowany. Kliknij 4 punkty na mapie.');
+        }
 
+
+        document.addEventListener('mousedown', (event) => {
+            console.log('Numer przycisku myszy:', event.button);
+        });
         
         let currentLatLng = null;
         let timeStr = null;
@@ -365,7 +574,8 @@
             const confirmBtn = document.getElementById("confirmBtn");
             const closeModalBtn = document.getElementById("closeModalBtn");
 
-            promptModal.style.display = "block";
+            promptModal.style.display = "block"; 
+
 
             confirmBtn.onclick = () => {
                 const activityName = document.getElementById("activityName").value;
@@ -377,13 +587,15 @@
                     return;
                 }
 
+
                 promptModal.style.display = "none";
-                callback(true, activityName, activityTime, activityDate);
+                callback(true, activityName, activityTime, activityDate); 
             };
 
+
             closeModalBtn.onclick = () => {
-                promptModal.style.display = "none";
-                callback(false);
+                promptModal.style.display = "none"; 
+                callback(false); 
             };
         }
         function savePin(latLng, author, time, activity, date) {
@@ -479,8 +691,9 @@
         function addMarker(location, author, time, activity, interests, fromUser, userDate) {
             test = new google.maps.LatLng(location.lat, location.lng);
 
-            let iconFileName = activity;
+            let iconFileName = activity; 
 
+         
             var customIcon = {
                 url: `https://SERVERIP/uploads/icons/${iconFileName}.png`,
                 scaledSize: new google.maps.Size(25, 40),
@@ -491,7 +704,7 @@
             if (fromUser) {
 
                 
-                const radius = 1;
+                const radius = 1; 
                 const duplicateActivity = markers.some(marker => {
                     const distance = getDistanceInKm(location.lat(), location.lng(), marker.position.lat(), marker.position.lng());
                     currentMarker = marker;
@@ -503,12 +716,15 @@
                     alert(`W promieniu 1 km istnieje już pinezka z aktywnością: ${activity}. Czy zamiast tego, dodać cię do wydarzenia?`);
 
                     showModal((mergeBool) => {
-                        console.log(mergeBool);
+                        console.log(mergeBool); 
 
                         if (mergeBool) {
                             addInterestedUser();
-                            return;
+                            return; 
                         }
+
+                        
+
 
                         const marker = new google.maps.Marker({
                             position: location,
@@ -533,8 +749,8 @@
                        
                         console.log("LatLng utworzony:", test);
 
-                        const authorTrim = String(author).trim();
-                        const timeTrim = String(time).trim();
+                        const authorTrim = String(author).trim(); 
+                        const timeTrim = String(time).trim(); 
                         const activityTrim = String(activity).trim();
 
                         savePin(currentLatLng, authorTrim, timeTrim, activityTrim, userDate);
@@ -542,17 +758,19 @@
 
                     });
 
-                    return;
+                    return; 
                 }
                 else {
-                    const authorTrim = String(author).trim();
-                    const timeTrim = String(time).trim();
+                    const authorTrim = String(author).trim(); 
+                    const timeTrim = String(time).trim(); 
                     const activityTrim = String(activity).trim();
 
+                    
                     console.log(test);
                     savePin(currentLatLng, authorTrim, timeTrim, activityTrim,userDate);
                 }
             }
+            
             
             const marker = new google.maps.Marker({
                 position: location,
@@ -576,12 +794,11 @@
 
 
             markers.push(marker);
-
+           
         }
 
         //Merge
         function showModal(callback) {
-
             document.getElementById('mergeModal').style.display = 'block';
 
             const yesButton = document.getElementById('yesButton');
@@ -589,12 +806,12 @@
 
             yesButton.onclick = () => {
                 document.getElementById('mergeModal').style.display = 'none';
-                callback(true);
+                callback(true); 
             };
 
             noButton.onclick = () => {
                 document.getElementById('mergeModal').style.display = 'none';
-                callback(false);
+                callback(false); 
             };
         }
 
@@ -609,7 +826,7 @@
         }
 
         document.getElementById('closeModal').addEventListener('click', function () {
-            document.getElementById('modal').style.display = 'none';
+            document.getElementById('modal').style.display = 'none'; 
         });
 
         //Pin okno
@@ -626,18 +843,47 @@
             document.getElementById('markerActivity').textContent = `Aktywność: ${marker.activity || "Brak aktywności"}`;
             document.getElementById('markerDate').textContent = `Data: ${marker.date || "Brak daty"}`;
 
+
+            let maxInterestCount;
+            //max = -1
+            switch (marker.activity) { 
+
+                case 'Koszykowka':
+                    maxInterestCount = 10; // Maksymalna liczba zainteresowanych
+                    break;
+
+                case 'Pilka_nozna':
+                    maxInterestCount = 22; // Maksymalna liczba zainteresowanych
+                    break;
+
+                case 'Bieganie':
+                    maxInterestCount = 2; // Maksymalna liczba zainteresowanych
+                    break;
+
+                case 'Inne':
+                    maxInterestCount = 3;
+                    break;
+
+            }
+
+
             const interestList = document.getElementById('markerInterestList');
+            const lobbyList = document.getElementById('markerLobbyList'); 
+
             interestList.innerHTML = '';
+            lobbyList.innerHTML = ''; 
+
             if (marker.interests && marker.interests.length > 0) {
-                marker.interests.forEach(interest => {
+                const interested = marker.interests.slice(0, maxInterestCount); 
+                const reserves = marker.interests.slice(maxInterestCount); 
+
+                interested.forEach(interest => {
                     if (interest.trim() === '') return;
                     const listItem = document.createElement('li');
                     listItem.textContent = interest;
 
-
                     const avatar = document.createElement('img');
                     const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
-
 
                     const img = new Image();
                     img.onload = () => {
@@ -649,14 +895,43 @@
                         listItem.appendChild(avatar);
                     };
                     img.onerror = () => {
-
                         avatar.style.display = 'none';
                     };
                     img.src = avatarUrl;
 
-
                     interestList.appendChild(listItem);
                 });
+
+                if (reserves.length > 0) {
+                    //const reserveTitle = document.createElement('p');
+                    //reserveTitle.textContent = ':';
+                    //lobbyList.appendChild(reserveTitle);
+
+                    reserves.forEach(interest => {
+                        if (interest.trim() === '') return;
+                        const listItem = document.createElement('li');
+                        listItem.textContent = interest;
+
+                        const avatar = document.createElement('img');
+                        const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
+
+                        const img = new Image();
+                        img.onload = () => {
+                            avatar.src = avatarUrl;
+                            avatar.alt = `${interest}'s Avatar`;
+                            avatar.style.width = '30px';
+                            avatar.style.height = '30px';
+                            avatar.style.marginLeft = '10px';
+                            listItem.appendChild(avatar);
+                        };
+                        img.onerror = () => {
+                            avatar.style.display = 'none';
+                        };
+                        img.src = avatarUrl;
+
+                        lobbyList.appendChild(listItem);
+                    });
+                }
 
             } else {
                 const listItem = document.createElement('li');
@@ -665,8 +940,6 @@
             }
 
             currentMarker = marker;
-
-
             modal.style.display = 'block';
         }
 
@@ -675,10 +948,11 @@
             markerModal.style.display = 'none';
         }
 
+
         //Pomocniczne funkcje
 
         function getDistanceInKm(lat1, lng1, lat2, lng2) {
-            const R = 6371;
+            const R = 6371; // Promień Ziemi w kilometrach
             const dLat = degreesToRadians(lat2 - lat1);
             const dLng = degreesToRadians(lng2 - lng1);
             const a =
@@ -686,9 +960,10 @@
                 Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) *
                 Math.sin(dLng / 2) * Math.sin(dLng / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
+            return R * c; // Odległość w kilometrach
         }
 
+        // Funkcja pomocnicza do konwersji stopni na radiany
         function degreesToRadians(degrees) {
             return degrees * (Math.PI / 180);
         }
@@ -706,10 +981,7 @@
                 window.markerCircles.forEach(circle => circle.setMap(null));
             }
             window.markerCircles = [];
-
-
             markers.forEach(marker => {
-
                 const circle = new google.maps.Circle({
                     strokeColor: "#FF0000",
                     strokeOpacity: 0.8,
@@ -717,9 +989,9 @@
                     fillColor: "#FF0000",
                     fillOpacity: 0.35,
                     map: map, 
-                    center: marker.position,
-                    radius: 1000,
-                    clickable: false,
+                    center: marker.position, 
+                    radius: 1000, // Promień w metrach (1 km)
+                    clickable: false, 
                 });
 
                 window.markerCircles.push(circle);
@@ -736,9 +1008,11 @@
             const markerModal = document.getElementById('markerModal');
             const loginModal = document.getElementById('loginModal');
 
+
             if (event.target === markerModal) {
                 closeMarkerModal();
             }
+
 
             if (event.target === loginModal) {
                 closeLoginModal();
@@ -753,8 +1027,12 @@
 
     </script>
 
+           
+
     </div>
+
 
     <div id="map"></div> 
  
+
 </body>
