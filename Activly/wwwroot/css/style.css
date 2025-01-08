@@ -43,10 +43,10 @@
     cursor: pointer;
 }
 
-    .close:hover,
-    .close:focus {
-        color: #fff;
-    }
+.close:hover,
+.close:focus {
+    color: #fff;
+}
 
 #loginForm,
 #registerForm {
@@ -74,11 +74,11 @@ input[type="password"] {
     font-size: 16px;
 }
 
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-        outline: none;
-        border-color: #1e90ff;
-    }
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #1e90ff;
+}
 
 button[type="submit"] {
     width: 100%;
@@ -92,9 +92,9 @@ button[type="submit"] {
     transition: background-color 0.3s;
 }
 
-    button[type="submit"]:hover {
-        background-color: #5a6268;
-    }
+button[type="submit"]:hover {
+    background-color: #5a6268;
+}
 
 #errorMessage {
     color: red;
@@ -129,9 +129,9 @@ button {
     border-radius: 4px;
 }
 
-    button:hover {
-        background-color: #666;
-    }
+button:hover {
+    background-color: #666;
+}
 
 #searchModal {
     display: none;
@@ -148,30 +148,30 @@ button {
     color: #fff;
 }
 
-    #searchModal .close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-        color: #ccc;
-    }
+#searchModal .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #ccc;
+}
 
-    #searchModal button {
-        background-color: #444;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        padding: 10px;
-    }
+#searchModal button {
+    background-color: #444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px;
+}
 
-        #searchModal button:hover {
-            background-color: #555;
-        }
+#searchModal button:hover {
+    background-color: #555;
+}
 
 body {
     background-color: #121212;
@@ -188,38 +188,38 @@ body {
     color: #f8f9fa;
 }
 
-    #profileForm .form-group {
-        margin-bottom: 15px;
-    }
+#profileForm .form-group {
+    margin-bottom: 15px;
+}
 
-    #profileForm .form-control {
-        background-color: #444;
-        color: #f8f9fa;
-        border: 1px solid #666;
-        border-radius: 4px;
-        padding: 10px;
-    }
+#profileForm .form-control {
+    background-color: #444;
+    color: #f8f9fa;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 10px;
+}
 
-        #profileForm .form-control:focus {
-            background-color: #555;
-            border-color: #007bff;
-            color: #f8f9fa;
-        }
+#profileForm .form-control:focus {
+    background-color: #555;
+    border-color: #007bff;
+    color: #f8f9fa;
+}
 
-    #profileForm .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
-        color: white;
-    }
+#profileForm .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
 
-        #profileForm .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #004085;
-        }
+#profileForm .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
 
-    #profileForm label {
-        color: #ddd;
-    }
+#profileForm label {
+    color: #ddd;
+}
 
 #preview {
     border-radius: 4px;
@@ -244,7 +244,7 @@ body {
 }
 
 #mergeModal {
-    display: none;
+    display: none; /* Początkowo ukryty */
     position: fixed;
     left: 50%;
     top: 50%;
@@ -254,7 +254,7 @@ body {
     color: white;
     border-radius: 10px;
     text-align: center;
-    z-index: 1000;
+    z-index: 1000; /* Zapewnia, że modal jest na wierzchu */
 }
 
 #userDisplay {
@@ -275,162 +275,63 @@ body {
     text-align: center;
 }
 
-    .footer .footer-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
-    .footer .footer-left p {
-        margin: 0;
-    }
-
-    .footer .footer-right {
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .footer .social-links {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-    }
-
-        .footer .social-links li {
-            margin-left: 15px;
-        }
-
-    .footer .social-icon {
-        color: #ccc;
-        font-size: 20px;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-        .footer .social-icon:hover {
-            color: #888;
-        }
-
-    /* Text and links in footer */
-    .footer .footer-links {
-        margin-top: 10px;
-        font-size: 12px;
-    }
-
-        .footer .footer-links a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-            .footer .footer-links a:hover {
-                color: #888;
-            }
-
-    .footer small {
-        display: block;
-        margin-top: 5px;
-        font-size: 12px;
-        color: #888;
-    }
-
-/* General responsiveness settings */
-html {
-    font-size: 14px;
-}
-
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
-
-/* Mobile styles */
-@media (max-width: 767px) {
-    .navbar-collapse {
-        flex-direction: column;
-    }
-
-    .navbar-nav {
-        margin-top: 10px;
-        text-align: center;
-    }
-
-    .footer .footer-content {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .footer .social-links {
-        justify-content: center;
-    }
-
-    .container {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    .faq-answer {
-        font-size: 14px;
-    }
-
-    .navbar-toggler {
-        margin-bottom: 10px;
-    }
-
-    .footer .footer-right {
-        justify-content: center;
-        margin-top: 10px;
-    }
-}
-
-/* Improved readability on small screens */
-body {
-    font-size: 16px;
-    line-height: 1.5;
-    word-wrap: break-word;
-}
-
-/* Button styles */
-.btn-action {
-    padding: 8px 12px;
-    font-size: 14px;
-    background-color: #444;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: inline-block;
-    margin: 5px;
-    text-align: center;
-}
-
-    /* Button hover */
-    .btn-action:hover {
-        background-color: #555;
-    }
-
-/* Button container styles */
-.buttonContainer {
+.footer .footer-content {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin: 10px 0;
 }
 
-/* Mobile button responsiveness */
-@media (max-width: 767px) {
-    .btn-action {
-        font-size: 12px;
-        padding: 6px 10px;
-        flex: 1 1 calc(50% - 20px);
-    }
+.footer .footer-left p {
+    margin: 0;
+}
 
-    .buttonContainer {
-        gap: 8px;
-    }
+.footer .footer-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.footer .social-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.footer .social-links li {
+    margin-left: 15px;
+}
+
+.footer .social-icon {
+    color: #ccc;
+    font-size: 20px; /* Wielkość ikony */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer .social-icon:hover {
+    color: #888; /* Nowy kolor hover dla ikon */
+}
+
+/* Dodatkowe style dla tekstu i linków w stopce */
+.footer .footer-links {
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.footer .footer-links a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer .footer-links a:hover {
+    color: #888; /* Nowy kolor hover dla linków */
+}
+
+.footer small {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
 }
