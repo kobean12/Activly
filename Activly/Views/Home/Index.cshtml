@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -59,15 +59,15 @@
         <button id="closeModal">Zamknij</button>
     </div>
 
-    <div class="buttonContainer">
-        <button onclick="openSearchModal()" class="openSearchButton">Open Search</button>
-        <button id="drawCirclesButton">Zasięg pinów</button>
-        <button id="refreshButton">Odswiez</button>
-        <button id="markingModeButton">Tryb oznaczania</button>
-        <button id="savePointsButton">Gotowe</button>
-        <button id="getPointsButton">Obiekty sportowe</button>
-        <button id="toggleHeatmap">Pokaż Heatmapę</button>
-    </div>
+<div class="buttonContainer">
+    <button id="openSearchButton" class="btn-action">Open Search</button>
+    <button id="drawCirclesButton" class="btn-action">Zasięg pinów</button>
+    <button id="refreshButton" class="btn-action">Odśwież</button>
+    <button id="markingModeButton" class="btn-action">Tryb oznaczania</button>
+    <button id="savePointsButton" class="btn-action">Gotowe</button>
+    <button id="getPointsButton" class="btn-action">Obiekty sportowe</button>
+    <button id="toggleHeatmap" class="btn-action">Pokaż Heatmapę</button>
+</div>
 
     <div id="searchModal" style="display:none;">
         <button class="close">&times;</button>
@@ -75,32 +75,28 @@
         <button id="searchButton">Szukaj</button>
         <div id="activityButtons">
             <button class="activityButton" data-activity="Koszykowka">Koszykowka</button>
-            <button class="activityButton" data-activity="Pilka_nozna">Pilka nozna</button>
+            <button class="activityButton" data-activity="Pilka_nozna">Piłka nozna</button>
             <button class="activityButton" data-activity="Bieganie">Bieganie</button>
             <button class="activityButton" data-activity="Inne">Inne</button>
         </div>
     </div>
     
     <div id="markerModal" class="modal">
-
-    <div class="modal-content">
-        <span class="close">&times;</span> 
-        <p id="markerTitle">Nazwa pinezki</p>
-        
-        <p><span id="markerAuthor"></span></p>
-        <p><span id="markerTime"></span></p>
-        <p><span id="markerDate"></span></p>
-        <p><span id="markerActivity"></span></p>
-        
-        <p>Zainteresowania:</p>
-        <ul id="markerInterestList"></ul>
+        <div class="modal-content">
+            <span class="close">&times;</span> 
+            <p id="markerTitle">Nazwa pinezki</p>
+            <p><span id="markerAuthor"></span></p>
+            <p><span id="markerTime"></span></p>
+            <p><span id="markerDate"></span></p>
+            <p><span id="markerActivity"></span></p>
+            <p>Zainteresowania:</p>
+            <ul id="markerInterestList"></ul>
             <button onclick="addInterestedUser()">Add Me as Interested</button>
             <button onclick="removeInterestedUser()">Remove Me as Interested</button>
-        <p>Rezerwowi:</p>
-        <ul id="markerLobbyList"></ul>
+            <p>Rezerwowi:</p>
+            <ul id="markerLobbyList"></ul>
+        </div>
     </div>
-
-</div>
 
 
 
