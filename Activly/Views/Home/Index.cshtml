@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -63,9 +63,11 @@
         <button onclick="openSearchModal()" class="openSearchButton">Open Search</button>
         <button id="drawCirclesButton">Zasięg pinów</button>
         <button id="refreshButton">Odswiez</button>
+        <button id="getPointsButton">Obiekty sportowe</button> 
+        <button onclick="openModal2()">Trasy Biegowe</button>
+
         <button id="markingModeButton">Tryb oznaczania</button>
         <button id="savePointsButton">Gotowe</button>
-        <button id="getPointsButton">Obiekty sportowe</button>
         <button id="toggleHeatmap">Pokaż Heatmapę</button>
     </div>
 
@@ -78,6 +80,34 @@
             <button class="activityButton" data-activity="Pilka_nozna">Pilka nozna</button>
             <button class="activityButton" data-activity="Bieganie">Bieganie</button>
             <button class="activityButton" data-activity="Inne">Inne</button>
+            
+        </div>
+    </div>
+
+    <div id="surveyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Ankieta Przygotowania do Biegania</div>
+            <form id="surveyForm">
+                <div class="slider-container">
+                    <label for="experienceLevel">Poziom doświadczenia</label>
+                    <input type="range" id="experienceLevel" min="0" max="10" value="5">
+                    <span id="experienceValue">5</span>/10
+                </div>
+                <div class="slider-container">
+                    <label for="willingnessLevel">Poziom chęci</label>
+                    <input type="range" id="willingnessLevel" min="0" max="10" value="5">
+                    <span id="willingnessValue">5</span>/10
+                </div>
+                <div class="slider-container">
+                    <label for="sportswearLevel">Ubiór sportowy</label>
+                    <input type="range" id="sportswearLevel" min="0" max="10" value="5">
+                    <span id="sportswearValue">5</span>/10
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="close-btn" onclick="closeModal2()">Zamknij</button>
+                    <button type="button" class="submit-btn" onclick="processSurvey()">Wyślij</button>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -105,7 +135,134 @@
 
 
     <script>
+        ///trasy
+        function drawRoute(routePoints) {
 
+            
+            map.panTo(routePoints[0]); 
+
+            const startMarker = new google.maps.Marker({
+                position: routePoints[0],
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                    scale: 5,
+                    fillColor: "green", 
+                    fillOpacity: 1,
+                    strokeWeight: 1
+                }
+            });
+
+            
+            const endMarker = new google.maps.Marker({
+                position: routePoints[routePoints.length - 1],
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                    scale: 5,
+                    fillColor: "red", 
+                    fillOpacity: 1,
+                    strokeWeight: 1
+                }
+            });
+
+            
+
+            const routePath = new google.maps.Polyline({
+                path: routePoints,
+                geodesic: true,
+                strokeColor: "#0000FF",
+                strokeOpacity: 1.0,
+                strokeWeight: 4
+            });
+
+            routePath.setMap(map);
+        }
+
+        const routes = {
+            Trasa1: [
+                { lat: 53.42814510965657, lng: 14.563782378002266 }, 
+                { lat: 53.429477939001295, lng: 14.564597769542793 }, 
+                { lat: 53.42990453661462, lng: 14.56337440405484 },
+                { lat: 53.42830962721764, lng: 14.562451724153718 }
+            ],
+            Trasa2: [
+                { lat: 53.42853443379454, lng: 14.552271711332802 },
+                { lat: 53.43167943165026, lng: 14.554438936216835 },
+                { lat: 53.43459301800072, lng: 14.55367955439581 },
+                { lat: 53.4348103317564, lng: 14.555793135099545 },
+                { lat: 53.435027644400805, lng: 14.559805719785825 },
+                { lat: 53.432943953880404, lng: 14.558614818983212 },
+                { lat: 53.43161680364806, lng: 14.557874529295102 },
+                { lat: 53.43156335820688, lng: 14.557294634643885 },
+                { lat: 53.43123097014934, lng: 14.55714443093905 },
+                { lat: 53.43099446167941, lng: 14.557573584381434 },
+                { lat: 53.42851755948546, lng: 14.556301143630467 },
+                { lat: 53.428849968762414, lng: 14.553758409484349 }
+            ],
+            Trasa3: [
+                { lat: 53.42853443379454, lng: 14.552271711332802 },
+                { lat: 53.43167943165026, lng: 14.554438936216835 },
+                { lat: 53.43459301800072, lng: 14.55367955439581 }
+            ]
+        };
+        ///
+        function openModal2() {
+            document.getElementById('surveyModal').style.display = 'flex';
+        }
+
+        function closeModal2() {
+            document.getElementById('surveyModal').style.display = 'none';
+        }
+
+        const experienceInput = document.getElementById('experienceLevel');
+        const willingnessInput = document.getElementById('willingnessLevel');
+        const sportswearInput = document.getElementById('sportswearLevel');
+
+        experienceInput.addEventListener('input', () => {
+            document.getElementById('experienceValue').textContent = experienceInput.value;
+        });
+
+        willingnessInput.addEventListener('input', () => {
+            document.getElementById('willingnessValue').textContent = willingnessInput.value;
+        });
+
+        sportswearInput.addEventListener('input', () => {
+            document.getElementById('sportswearValue').textContent = sportswearInput.value;
+        });
+
+        function processSurvey() {
+            
+            const experience = parseInt(experienceInput.value);
+            const willingness = parseInt(willingnessInput.value);
+            const sportswear = parseInt(sportswearInput.value);
+
+            const totalScore = experience + willingness + sportswear;
+
+            let message = '';
+            switch (true) {
+                case (totalScore <= 10):
+                    message = 'Jesteś początkujący, zacznij od małych kroków!';
+                    drawRoute(routes['Trasa1']);
+                    break;
+                case (totalScore <= 20):
+                    message = 'Jesteś na dobrej drodze! Przygotuj się do regularnego biegania.';
+                    drawRoute(routes['Trasa2']);
+                    break;
+                case (totalScore > 20):
+                    message = 'Jesteś świetnie przygotowany! Czas na wyzwania.';
+                    drawRoute(routes['Trasa3']);
+                    break;
+                default:
+                    message = 'Wprowadź poprawne wartości.';
+            }
+
+            alert(message);
+            closeModal2();
+        }
+
+
+        ////
         let heatmap = null;
 
 
@@ -215,7 +372,7 @@
             const user = userName;
 
 
-            fetch(`https://SERVERIP/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+            fetch(`https://IPSERVER/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -246,7 +403,7 @@
             const user = userName;
 
 
-            fetch(`https://SERVERIP/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+            fetch(`https://IPSERVER/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -366,7 +523,31 @@
                 fillOpacity: 0.35
             });
 
+            
+
             polygon.setMap(map);
+        }
+
+        /// Debugowanie
+        function drawPolygonNumber(points,number)
+        {
+            const polygon = new google.maps.Polygon({
+                paths: points,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+            });
+
+            polygon.setMap(map);
+
+            const label = new google.maps.Marker({
+                position: points[1],
+                map: map,
+                label: number.toString(),
+                icon: null
+            });
         }
 
         document.getElementById('getPointsButton').addEventListener('click', function () {
@@ -399,9 +580,12 @@
 
                         console.log("Processed Polygons:", polygons);
 
-                        polygons.forEach(points => {
-                            drawPolygon(points);
+                        polygons.forEach((points, index) => {
+                        drawPolygonNumber(points, index + 1); 
+                        
                         });
+
+
                     } else {
                         alert("Nieprawidłowe dane z serwera.");
                     }
@@ -506,7 +690,7 @@
         });
 
         function loadHeatmapData() {
-            fetch('https://SERVERIP/api/pin/heatmap')
+            fetch('https://IPSERVER/api/pin/heatmap')
                 .then(response => response.json())
                 .then(data => {
                     const heatmapData = [];
@@ -613,7 +797,7 @@
             console.log("Dane do wysłania:", data);
 
 
-            fetch('https://SERVERIP/api/pin', {
+            fetch('https://IPSERVER/api/pin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -637,7 +821,7 @@
 
 
         function fetchPins() {
-            fetch('https://SERVERIP/api/pin')
+            fetch('https://IPSERVER/api/pin')
                 .then(response => response.json())
                 .then(pins => {
                     console.log("Fetched pins:", pins);
@@ -695,10 +879,10 @@
 
          
             var customIcon = {
-                url: `https://SERVERIP/uploads/icons/${iconFileName}.png`,
-                scaledSize: new google.maps.Size(25, 40),
+                url: `https://IPSERVER/uploads/icons/${iconFileName}.png`,
+                scaledSize: new google.maps.Size(50, 75),
                 origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(20, 40)
+                anchor: new google.maps.Point(25, 75)
             };
 
             if (fromUser) {
@@ -883,7 +1067,7 @@
                     listItem.textContent = interest;
 
                     const avatar = document.createElement('img');
-                    const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
+                    const avatarUrl = `https://IPSERVER/uploads/${interest}/avatar.png`;
 
                     const img = new Image();
                     img.onload = () => {
@@ -913,7 +1097,7 @@
                         listItem.textContent = interest;
 
                         const avatar = document.createElement('img');
-                        const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
+                        const avatarUrl = `https://IPSERVER/uploads/${interest}/avatar.png`;
 
                         const img = new Image();
                         img.onload = () => {
