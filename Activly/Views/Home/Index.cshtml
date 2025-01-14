@@ -135,6 +135,12 @@
 
 
     <script>
+
+
+        //let user_location = {lat:53.43359201773008, lng:14.555626040702068};  //pozycja testowa 1
+        let user_location = {lat:53.433011941301245, lng:14.540127663786313};   //pozycja testowa 2
+
+
         ///trasy
         function drawRoute(routePoints) {
 
@@ -179,33 +185,78 @@
             routePath.setMap(map);
         }
 
-        const routes = {
-            Trasa1: [
-                { lat: 53.42814510965657, lng: 14.563782378002266 }, 
-                { lat: 53.429477939001295, lng: 14.564597769542793 }, 
-                { lat: 53.42990453661462, lng: 14.56337440405484 },
-                { lat: 53.42830962721764, lng: 14.562451724153718 }
+            const routes = {
+            TrasaGrupa1: [
+                       { Trasa1: [{   lat: 53.42814510965657, lng: 14.563782378002266 },
+                                    { lat: 53.429477939001295, lng: 14.564597769542793 },
+                                    { lat: 53.42990453661462, lng: 14.56337440405484 },
+                                    { lat: 53.42830962721764, lng: 14.562451724153718 }] },
+
+                       { Trasa2: [  { lat: 53.42853443379454, lng: 14.552271711332802 },
+                                    { lat: 53.43167943165026, lng: 14.554438936216835 },
+                                    { lat: 53.43459301800072, lng: 14.55367955439581 },
+                                    { lat: 53.4348103317564, lng: 14.555793135099545 },
+                                    { lat: 53.435027644400805, lng: 14.559805719785825 },
+                                    { lat: 53.432943953880404, lng: 14.558614818983212 },
+                                    { lat: 53.43161680364806, lng: 14.557874529295102 },
+                                    { lat: 53.43156335820688, lng: 14.557294634643885 },
+                                    { lat: 53.43123097014934, lng: 14.55714443093905 },
+                                    { lat: 53.43099446167941, lng: 14.557573584381434 },
+                                    { lat: 53.42851755948546, lng: 14.556301143630467 },
+                                    { lat: 53.428849968762414, lng: 14.553758409484349 }] },
+                       { Trasa3: [{ lat: 53.42853443379454, lng: 14.552271711332802 },
+                                    { lat: 53.43167943165026, lng: 14.554438936216835 },
+                                     { lat: 53.43459301800072, lng: 14.55367955439581 }] },
+                       { Trasa4: [{ lat: 53.43483863971441, lng: 14.53905876559895 },
+                                    { lat: 53.43574623160663, lng: 14.541676601597485 },
+                                     { lat: 53.436743282045896, lng: 14.540517887303052 }] }
             ],
-            Trasa2: [
-                { lat: 53.42853443379454, lng: 14.552271711332802 },
-                { lat: 53.43167943165026, lng: 14.554438936216835 },
-                { lat: 53.43459301800072, lng: 14.55367955439581 },
-                { lat: 53.4348103317564, lng: 14.555793135099545 },
-                { lat: 53.435027644400805, lng: 14.559805719785825 },
-                { lat: 53.432943953880404, lng: 14.558614818983212 },
-                { lat: 53.43161680364806, lng: 14.557874529295102 },
-                { lat: 53.43156335820688, lng: 14.557294634643885 },
-                { lat: 53.43123097014934, lng: 14.55714443093905 },
-                { lat: 53.43099446167941, lng: 14.557573584381434 },
-                { lat: 53.42851755948546, lng: 14.556301143630467 },
-                { lat: 53.428849968762414, lng: 14.553758409484349 }
+            TrasaGrupa2: [
+        { Trasa4: [{ lat: 53.42853443379454, lng: 14.552271711332802 },
+                                           { lat: 53.43167943165026, lng: 14.554438936216835 },
+                                            { lat: 53.43459301800072, lng: 14.55367955439581 }] }
             ],
-            Trasa3: [
-                { lat: 53.42853443379454, lng: 14.552271711332802 },
-                { lat: 53.43167943165026, lng: 14.554438936216835 },
-                { lat: 53.43459301800072, lng: 14.55367955439581 }
-            ]
+            TrasaGrupa3: []
         };
+
+
+
+
+
+        function findNearestRoute(groupName, startLocation) {
+            const group = routes[groupName];
+
+            if (!group) {
+                throw new Error(`Grupa "${groupName}" nie istnieje.`);
+            }
+
+            let nearestRoute = null;
+            let shortestDistance = Infinity;
+            let nearestRoutePoints = [];
+
+            group.forEach((route) => {
+                for (const routeName in route) {
+                    const points = route[routeName]; 
+                    const firstPoint = points[0]; 
+                    const distance = getDistanceInKm(startLocation.lat, startLocation.lng, firstPoint.lat, firstPoint.lng);
+
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        nearestRoute = { routeName, distance };
+                        nearestRoutePoints = points;
+                    }
+                }
+            });
+
+            return nearestRoutePoints ;
+        }
+
+
+
+
+
+
+
         ///
         function openModal2() {
             document.getElementById('surveyModal').style.display = 'flex';
@@ -243,15 +294,15 @@
             switch (true) {
                 case (totalScore <= 10):
                     message = 'Jesteś początkujący, zacznij od małych kroków!';
-                    drawRoute(routes['Trasa1']);
+                           drawRoute(findNearestRoute('TrasaGrupa1', user_location));
                     break;
                 case (totalScore <= 20):
                     message = 'Jesteś na dobrej drodze! Przygotuj się do regularnego biegania.';
-                    drawRoute(routes['Trasa2']);
+                           drawRoute(findNearestRoute('TrasaGrupa2', user_location));
                     break;
                 case (totalScore > 20):
                     message = 'Jesteś świetnie przygotowany! Czas na wyzwania.';
-                    drawRoute(routes['Trasa3']);
+                    drawRoute(findNearestRoute('TrasaGrupa3', user_location));
                     break;
                 default:
                     message = 'Wprowadź poprawne wartości.';
@@ -260,6 +311,13 @@
             alert(message);
             closeModal2();
         }
+
+
+
+
+
+
+
 
 
         ////
@@ -281,7 +339,6 @@
 
 
         const alertModal = document.getElementById("alertModal");
-        //const openModalBtn = document.getElementById("openModalBtn");
         const submitBtn = document.getElementById("submitBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         
@@ -372,7 +429,7 @@
             const user = userName;
 
 
-            fetch(`https://IPSERVER/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+            fetch(`https://SERVERIP/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -403,7 +460,7 @@
             const user = userName;
 
 
-            fetch(`https://IPSERVER/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+            fetch(`https://SERVERIP/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -471,7 +528,7 @@
         //Mapa
         
         //Ładowanie mapy
-
+        
 
         let markingMode = false;
         let points = [];
@@ -612,6 +669,20 @@
                 map: map
             });
 
+
+            const userLocationMarker = new google.maps.Marker({
+                position: user_location,
+                map: map,
+                icon: {
+                    path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                    scale: 5,
+                    fillColor: "blue",
+                    fillOpacity: 1,
+                    strokeWeight: 1
+                }
+            });
+
+
             map.addListener('click', function (e) {
                 if (markingMode) {
                     drawCircle(e.latLng);
@@ -690,7 +761,7 @@
         });
 
         function loadHeatmapData() {
-            fetch('https://IPSERVER/api/pin/heatmap')
+            fetch('https://SERVERIP/api/pin/heatmap')
                 .then(response => response.json())
                 .then(data => {
                     const heatmapData = [];
@@ -797,7 +868,7 @@
             console.log("Dane do wysłania:", data);
 
 
-            fetch('https://IPSERVER/api/pin', {
+            fetch('https://SERVERIP/api/pin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -821,7 +892,7 @@
 
 
         function fetchPins() {
-            fetch('https://IPSERVER/api/pin')
+            fetch('https://SERVERIP/api/pin')
                 .then(response => response.json())
                 .then(pins => {
                     console.log("Fetched pins:", pins);
@@ -879,7 +950,7 @@
 
          
             var customIcon = {
-                url: `https://IPSERVER/uploads/icons/${iconFileName}.png`,
+                url: `https://SERVERIP/uploads/icons/${iconFileName}.png`,
                 scaledSize: new google.maps.Size(50, 75),
                 origin: new google.maps.Point(0, 0),
                 anchor: new google.maps.Point(25, 75)
@@ -1067,7 +1138,7 @@
                     listItem.textContent = interest;
 
                     const avatar = document.createElement('img');
-                    const avatarUrl = `https://IPSERVER/uploads/${interest}/avatar.png`;
+                    const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
 
                     const img = new Image();
                     img.onload = () => {
@@ -1097,7 +1168,7 @@
                         listItem.textContent = interest;
 
                         const avatar = document.createElement('img');
-                        const avatarUrl = `https://IPSERVER/uploads/${interest}/avatar.png`;
+                        const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
 
                         const img = new Image();
                         img.onload = () => {
