@@ -6,27 +6,87 @@
 
 <head>
     <link rel="stylesheet" href="/css/style.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key=APIKEY&libraries=visualization&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=APIKLUCZ&libraries=visualization&callback=initMap" async defer></script>
 </head>
 
 <body>
+    
+     <div id="buttonBlock" class="button-container" style="display:block;"> <!-- Guziki admina display:block-->
+        <button id="markingModeButton">Marking Mode</button>
+        <button id="savePointsButton">Save Points</button>
+        <button id="toggleHeatmap">Toggle Heatmap</button>
+        <button id="drawCirclesButton">Draw Circles</button>
+    </div>
+
+
+    <link id="theme-stylesheet" rel="stylesheet" href="/css/style.css">
+
+    
+
+    <div class="modal" id="mainModal">
+        <div class="modal-content">
+            <span class="close" id="closeMainModal">&times;</span>
+            <h2>Wiadomości</h2>
+            <div id="messageContainer"></div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="userProfileModal" tabindex="-1" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userProfileModalLabel">Profil użytkownika</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="modalGender" class="form-label">Gender:</label>
+                        <input type="text" id="modalGender" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalAge" class="form-label">Age:</label>
+                        <input type="text" id="modalAge" class="form-control" readonly>
+                    </div>
+                    <div class="text-center">
+                        <label class="form-label d-block">Avatar:</label>
+                        <img id="modalAvatar" src="" alt="Avatar" style="max-width: 100px; height: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        #modalGender {
+            color: black; 
+            font-weight: bold; 
+        }
+
+        #modalAge {
+            color: green; 
+            font-style: italic; 
+        }
+        #userProfileModal {
+            z-index: 1065 !important; 
+        }
+    </style>
 
     <div id="promptModal" class="modal">
         <div class="modal-content">
             <h4>Podaj szczegóły aktywności</h4>
 
-            <label for="activityName">Wybierz Aktywność:</label>
+            <label id= "activitySelect"for="activityName">Wybierz Aktywność:</label>
             <select id="activityName">
-                <option value="Koszykowka">Koszykowka</option>
-                <option value="Pilka_nozna">Piłka nożna</option>
-                <option value="Bieganie">Bieganie</option>
-                <option value="Inne">Inne</option>
+                <option id="Kosz" value="Koszykowka">Koszykowka</option>
+                <option id="Noga" value="Pilka_nozna">Piłka nożna</option>
+                <option id="Bieg" value="Bieganie">Bieganie</option>
+                <option id="Inne" value="Inne">Inne</option>
             </select>
 
             <label for="activityDate">Data (DD:MM:YYYY):</label>
             <input type="date" id="activityDate" value="2024-12-01" />
 
-            <label for="activityTime">Czas (HH:MM):</label>
+            <label id="czaslabel"for="activityTime">Czas (HH:MM):</label>
             <input type="time" id="activityTime" value="12:00">
 
             <button id="confirmBtn">Zatwierdź</button>
@@ -59,18 +119,14 @@
         <button id="closeModal">Zamknij</button>
     </div>
 
-    <div class="buttonContainer">
-        <button onclick="openSearchModal()" class="openSearchButton">Open Search</button>
-        <button id="drawCirclesButton">Zasięg pinów</button>
+    <div class="button-container3">
+        <button id="openSearchB" onclick="openSearchModal()" >Open Search</button>
+        <button id="themebutton">Change Theme</button>
+        <button id="readMessagesButton">Powiadomienia</button>
         <button id="refreshButton">Odswiez</button>
-        <button id="getPointsButton">Obiekty sportowe</button> 
-        <button onclick="openModal2()">Trasy Biegowe</button>
-
-        <button id="markingModeButton">Tryb oznaczania</button>
-        <button id="savePointsButton">Gotowe</button>
-        <button id="toggleHeatmap">Pokaż Heatmapę</button>
+        <button id="trasyButton" onclick=" openModal2()">Trasy Biegowe</button>
     </div>
-
+    
     <div id="searchModal" style="display:none;">
         <button class="close">&times;</button>
         <input type="text" id="activitySearchText" placeholder="Search activity...">
@@ -86,26 +142,26 @@
 
     <div id="surveyModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">Ankieta Przygotowania do Biegania</div>
+            <div id="ankietabieg" class="modal-header">Ankieta Przygotowania do Biegania</div>
             <form id="surveyForm">
                 <div class="slider-container">
-                    <label for="experienceLevel">Poziom doświadczenia</label>
+                    <label id="explevel" for="experienceLevel">Poziom doświadczenia</label>
                     <input type="range" id="experienceLevel" min="0" max="10" value="5">
                     <span id="experienceValue">5</span>/10
                 </div>
                 <div class="slider-container">
-                    <label for="willingnessLevel">Poziom chęci</label>
+                    <label id="energylevel"for="willingnessLevel">Poziom chęci</label>
                     <input type="range" id="willingnessLevel" min="0" max="10" value="5">
                     <span id="willingnessValue">5</span>/10
                 </div>
                 <div class="slider-container">
-                    <label for="sportswearLevel">Ubiór sportowy</label>
+                    <label id="sportwearl" for="sportswearLevel">Ubiór sportowy</label>
                     <input type="range" id="sportswearLevel" min="0" max="10" value="5">
                     <span id="sportswearValue">5</span>/10
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="close-btn" onclick="closeModal2()">Zamknij</button>
-                    <button type="button" class="submit-btn" onclick="processSurvey()">Wyślij</button>
+                    <button type="button" id="closeM" class="close-btn" onclick="closeModal2()">Zamknij</button>
+                    <button type="button" id="sendM" class="submit-btn" onclick="processSurvey()">Wyślij</button>
                 </div>
             </form>
         </div>
@@ -129,16 +185,166 @@
         <p>Rezerwowi:</p>
         <ul id="markerLobbyList"></ul>
     </div>
-
+        
 </div>
 
-
+    <div id="map"></div>
+    <div class="buttonContainer">
+        <button id="getPointsButton">Wszystkie</button>
+        <button id="getPointsButtonPlywalnia">Plywalnia</button>
+        <button id="getPointsButtonSilownia">Silownia</button>
+        <button id="getPointsButtonBoisko">Boisko</button>
+        <button id="getPointsButtonBudynekSportowy">Budynki Sportowe</button>
+    </div>
+    <div>
+        <h5> </h5>
+    </div>
+    <div>
+        <button onclick="loadTexts('en')">English</button>
+        <button onclick="loadTexts('pl')">Polski</button>
+    </div>
+    
+    
 
     <script>
+                document.addEventListener('DOMContentLoaded', () => {
+            loadTexts('en'); // Domyślne ładowanie tekstów
+        });
+               async function loadTexts(language) {
+            try {
+                const response = await fetch(`/localization/page-texts?lang=${language}`);
+                const data = await response.json();
+
+                console.log('Texts loaded:', data); // Sprawdź, czy teksty zostały poprawnie pobrane
+
+                // Aktualizacja elementów
+
+                const buttonEl1 = document.getElementById('getPointsButton');
+                const buttonEl2 = document.getElementById('getPointsButtonPlywalnia');
+                const buttonEl3 = document.getElementById('getPointsButtonSilownia');
+                const buttonEl4 = document.getElementById('getPointsButtonBoisko');
+                const buttonEl5 = document.getElementById('getPointsButtonBudynekSportowy');
+                const buttonEl6 = document.getElementById('openSearchB');
+                const buttonEl7 = document.getElementById('themebutton');
+                const buttonEl8 = document.getElementById('refreshButton');
+                const buttonEl9 = document.getElementById('trasyButton');
+                const buttonEl10 = document.getElementById('activitySelect');
+                const buttonEl11 = document.getElementById('Kosz');
+                const buttonEl12 = document.getElementById('Noga');
+                const buttonEl13 = document.getElementById('Bieg');
+                const buttonEl14 = document.getElementById('Inne');
+                const buttonEl15 = document.getElementById('czaslabel');
+                const buttonEl16 = document.getElementById('confirmBtn');
+                const buttonEl17 = document.getElementById('closeModalBtn');
+                const buttonEl18 = document.getElementById('ankietabieg');
+                const buttonEl19 = document.getElementById('explevel');
+                const buttonEl20 = document.getElementById('energylevel');
+                const buttonEl21 = document.getElementById('sportwearl');
+                const buttonEl22 = document.getElementById('closeM');
+                const buttonEl23 = document.getElementById('sendM');
 
 
-        //let user_location = {lat:53.43359201773008, lng:14.555626040702068};  //pozycja testowa 1
-        let user_location = {lat:53.433011941301245, lng:14.540127663786313};   //pozycja testowa 2
+                buttonEl1.textContent = data.getPointsButton;
+                buttonEl2.textContent = data.getPointsButtonPlywalnia;
+                buttonEl3.textContent = data.getPointsButtonSilownia;
+                buttonEl4.textContent = data.getPointsButtonBoisko;
+                buttonEl5.textContent = data.getPointsButtonBudynekSportowy;
+                buttonEl6.textContent = data.openSearchB;
+                buttonEl7.textContent = data.themebutton;
+                buttonEl8.textContent = data.refreshButton;
+                buttonEl9.textContent = data.trasyButton;
+                buttonEl10.textContent = data.activitySelect;
+                buttonEl11.textContent = data.Kosz;
+                buttonEl12.textContent = data.Noga;
+                buttonEl13.textContent = data.Bieg;
+                buttonEl14.textContent = data.Inne;
+                buttonEl15.textContent = data.czaslabel;
+                buttonEl16.textContent = data.confirmBtn;
+                buttonEl17.textContent = data.closeModalBtn;
+                buttonEl18.textContent = data.ankietabieg;
+                buttonEl19.textContent = data.explevel;
+                buttonEl20.textContent = data.energylevel;
+                buttonEl21.textContent = data.sportwearl;
+                buttonEl22.textContent = data.closeM;
+                buttonEl23.textContent = data.sendM;
+                
+            } catch (error) {
+                console.error('Error loading texts:', error);
+            }
+        }
+
+
+
+        ////test
+        function showAdminButtons() {
+        let usernameforadmin = fetchUserName();
+        
+        console.log(usernameforadmin);
+        if (typeof usernameforadmin !== 'undefined' && usernameforadmin === 'admin') {
+            document.getElementById('buttonBlock').style.display = 'block';
+        } else {
+            document.getElementById('buttonBlock').style.display = 'none';
+        }
+        }
+
+        ///TEST2
+                document.getElementById('themebutton').addEventListener('click', function() {
+            const stylesheet = document.getElementById('theme-stylesheet');
+            const currentTheme = stylesheet ? stylesheet.getAttribute('href') : null;
+
+            if (currentTheme === '/css/style.css') {
+                stylesheet.setAttribute('href', '/css/darktheme.css');
+            } else if (currentTheme) {
+                stylesheet.setAttribute('href', '/css/style.css');
+            }
+        });
+
+
+        ///TEST
+                document.getElementById('readMessagesButton').addEventListener('click', function() {
+            const apiUrl = `https://localhost:7203/api/messages/read?fileName=${userName}`;
+
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Błąd podczas odczytu wiadomości');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const messageContainer = document.getElementById('messageContainer');
+                    messageContainer.innerHTML = '';  // Usunięcie poprzednich danych
+
+                    data.forEach(message => {
+                        const messageElement = document.createElement('p');
+                        messageElement.textContent = message;  // Dodanie każdego komunikatu w osobnej linii
+                        messageContainer.appendChild(messageElement);
+                    });
+
+                    document.getElementById('mainModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Błąd:', error);
+                    document.getElementById('messageContainer').innerText = 'Błąd podczas odczytu wiadomości.';
+                });
+        });
+
+        document.getElementById('closeMainModal').addEventListener('click', function() {
+            document.getElementById('mainModal').style.display = 'none';
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('mainModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        ///TEST
+
+
+        let user_location = {lat:53.43359201773008, lng:14.555626040702068};  
+
 
 
         ///trasy
@@ -236,8 +442,8 @@
 
             group.forEach((route) => {
                 for (const routeName in route) {
-                    const points = route[routeName]; 
-                    const firstPoint = points[0]; 
+                    const points = route[routeName]; // Pobieramy wszystkie punkty trasy
+                    const firstPoint = points[0]; // Pierwszy punkt trasy
                     const distance = getDistanceInKm(startLocation.lat, startLocation.lng, firstPoint.lat, firstPoint.lng);
 
                     if (distance < shortestDistance) {
@@ -339,6 +545,7 @@
 
 
         const alertModal = document.getElementById("alertModal");
+        //const openModalBtn = document.getElementById("openModalBtn");
         const submitBtn = document.getElementById("submitBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         
@@ -371,6 +578,7 @@
         let mergeBool = false;
         let test;
 
+        let user_marker;
 
         
         //SEARCH PIN
@@ -429,7 +637,7 @@
             const user = userName;
 
 
-            fetch(`https://SERVERIP/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+            fetch(`https://localhost:7109/api/pin/addInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -460,7 +668,7 @@
             const user = userName;
 
 
-            fetch(`https://SERVERIP/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
+            fetch(`https://localhost:7109/api/pin/removeInterest?latitude=${latitude}&longitude=${longitude}&author=${author}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -487,9 +695,7 @@
         
         /// Login / Register
 
-        window.onload = function () {
-            fetchUserName();
-        };
+        
 
         document.getElementById('loginForm').addEventListener('submit', handleLogin);
         
@@ -528,7 +734,7 @@
         //Mapa
         
         //Ładowanie mapy
-        
+
 
         let markingMode = false;
         let points = [];
@@ -579,11 +785,10 @@
                 fillColor: '#FF0000',
                 fillOpacity: 0.35
             });
-
-            
-
             polygon.setMap(map);
         }
+
+        
 
         /// Debugowanie
         function drawPolygonNumber(points,number)
@@ -607,26 +812,109 @@
             });
         }
 
-        document.getElementById('getPointsButton').addEventListener('click', function () {
-            console.log("Button 'Obiekty sportowe' clicked!");
+        function drawPolygonBoiskoNumber(points,number)
+        {
+            const polygon = new google.maps.Polygon({
+                paths: points,
+                strokeColor: '#FF00FF',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF00FF',
+                fillOpacity: 0.35
+            });
 
-            fetch('/api/Map/GetPoints') 
+            polygon.setMap(map);
+
+            const label = new google.maps.Marker({
+                position: points[1],
+                map: map,
+                label: number.toString(),
+                icon: null
+            });
+        }
+
+        function drawPolygonPlywalniaNumber(points,number)
+                {
+                    const polygon = new google.maps.Polygon({
+                        paths: points,
+                        strokeColor: '#00FF00',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#00FF00',
+                        fillOpacity: 0.35
+                    });
+
+                    polygon.setMap(map);
+
+                    const label = new google.maps.Marker({
+                        position: points[1],
+                        map: map,
+                        label: number.toString(),
+                        icon: null
+                    });
+                }
+       
+        function drawPolygonSilowniaNumber(points,number)
+                {
+                    const polygon = new google.maps.Polygon({
+                        paths: points,
+                        strokeColor: '#0000FF',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#0000FF',
+                        fillOpacity: 0.35
+                    });
+
+                    polygon.setMap(map);
+
+                    const label = new google.maps.Marker({
+                        position: points[1],
+                        map: map,
+                        label: number.toString(),
+                        icon: null
+                    });
+                }
+
+        function drawPolygonBudynekSportowyNumber(points,number)
+                {
+                    const polygon = new google.maps.Polygon({
+                        paths: points,
+                        strokeColor: '#FFFF00',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#FFFF00',
+                        fillOpacity: 0.35
+                    });
+
+                    polygon.setMap(map);
+
+                    const label = new google.maps.Marker({
+                        position: points[1],
+                        map: map,
+                        label: number.toString(),
+                        icon: null
+                    });
+                }
+          
+        document.getElementById('getPointsButtonBoisko').addEventListener('click', function () {
+            console.log("Button 'Obiekty sportowe' clicked!");
+            fetch('/api/Map/GetPointsBoisko')
                 .then(response => response.json())
                 .then(data => {
-                    
+
                     if (data && Array.isArray(data)) {
-                        console.log("Points loaded:", data); 
+                        console.log("Points loaded:", data);
 
                         const polygons = data.map(line => {
 
                             const points = line.split(';').map(point => {
-                                const [latStr, lngStr] = point.split(','); 
-                                const lat = parseFloat(latStr.trim()); 
-                                const lng = parseFloat(lngStr.trim()); 
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
 
                                 if (isNaN(lat) || isNaN(lng)) {
                                     console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
-                                    return null; 
+                                    return null;
                                 }
 
                                 return { lat, lng };
@@ -638,8 +926,310 @@
                         console.log("Processed Polygons:", polygons);
 
                         polygons.forEach((points, index) => {
-                        drawPolygonNumber(points, index + 1); 
-                        
+                        drawPolygonBoiskoNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        });
+
+        document.getElementById('getPointsButtonSilownia').addEventListener('click', function () {
+            console.log("Button 'Obiekty sportowe' clicked!");
+            fetch('/api/Map/GetPointsSilownia')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonSilowniaNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        });
+
+        document.getElementById('getPointsButtonBudynekSportowy').addEventListener('click', function () {
+            console.log("Button 'Obiekty sportowe' clicked!");
+
+            fetch('/api/Map/GetPointsBudynekSportowy')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonBudynekSportowyNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        });
+
+        document.getElementById('getPointsButtonPlywalnia').addEventListener('click', function () {
+            console.log("Button 'Obiekty sportowe' clicked!");
+
+            fetch('/api/Map/GetPointsPlywalnia')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonPlywalniaNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        });
+
+        document.getElementById('getPointsButton').addEventListener('click', function () {
+            console.log("Button 'Obiekty sportowe' clicked!");
+
+            fetch('/api/Map/GetPointsPlywalnia')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonPlywalniaNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+
+            fetch('/api/Map/GetPointsBudynekSportowy')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonBudynekSportowyNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+        
+            fetch('/api/Map/GetPointsSilownia')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonSilowniaNumber(points, index + 1);
+
+                        });
+
+
+                    } else {
+                        alert("Nieprawidłowe dane z serwera.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
+
+            fetch('/api/Map/GetPointsBoisko')
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data && Array.isArray(data)) {
+                        console.log("Points loaded:", data);
+
+                        const polygons = data.map(line => {
+
+                            const points = line.split(';').map(point => {
+                                const [latStr, lngStr] = point.split(',');
+                                const lat = parseFloat(latStr.trim());
+                                const lng = parseFloat(lngStr.trim());
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                    console.error(`Błąd w punkcie: "${point}" - lat: ${lat}, lng: ${lng}`);
+                                    return null;
+                                }
+
+                                return { lat, lng };
+                            }).filter(point => point !== null);
+
+                            return points;
+                        });
+
+                        console.log("Processed Polygons:", polygons);
+
+                        polygons.forEach((points, index) => {
+                        drawPolygonBoiskoNumber(points, index + 1);
+
                         });
 
 
@@ -670,7 +1260,7 @@
             });
 
 
-            const userLocationMarker = new google.maps.Marker({
+            user_marker = new google.maps.Marker({
                 position: user_location,
                 map: map,
                 icon: {
@@ -715,17 +1305,10 @@
 
                     const latLng = event.latLng;
 
-                    const circle = new google.maps.Circle({
-                        strokeColor: "#0000FF",  
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
-                        fillColor: "#0000FF",   
-                        fillOpacity: 0.35,
-                        map: map,
-                        center: latLng,          
-                        radius: 1000,            // 1 km 
-                    });
-                    alertModal.style.display = "block"
+                    user_marker.setPosition(latLng);
+
+                    user_location.lat = latLng.lat();  // Pobranie szerokości geograficznej
+                    user_location.lng = latLng.lng();  // Pobranie długości geograficznej
                 }
             });
 
@@ -761,7 +1344,7 @@
         });
 
         function loadHeatmapData() {
-            fetch('https://SERVERIP/api/pin/heatmap')
+            fetch('https://localhost:7109/api/pin/heatmap')
                 .then(response => response.json())
                 .then(data => {
                     const heatmapData = [];
@@ -779,9 +1362,9 @@
                     });
 
                     if (heatmapData.length > 0) {
-                        const heatmap = new google.maps.visualization.HeatmapLayer({
+                        heatmap = new google.maps.visualization.HeatmapLayer({
                             data: heatmapData,
-                            map: map, 
+                            map: null, 
                         });
                     } else {
                         console.warn('Brak danych do wyświetlenia na heatmapie.');
@@ -868,7 +1451,7 @@
             console.log("Dane do wysłania:", data);
 
 
-            fetch('https://SERVERIP/api/pin', {
+            fetch('https://localhost:7109/api/pin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -892,7 +1475,7 @@
 
 
         function fetchPins() {
-            fetch('https://SERVERIP/api/pin')
+            fetch('https://localhost:7109/api/pin')
                 .then(response => response.json())
                 .then(pins => {
                     console.log("Fetched pins:", pins);
@@ -950,7 +1533,7 @@
 
          
             var customIcon = {
-                url: `https://SERVERIP/uploads/icons/${iconFileName}.png`,
+                url: `https://localhost:7109/uploads/icons/${iconFileName}.png`,
                 scaledSize: new google.maps.Size(50, 75),
                 origin: new google.maps.Point(0, 0),
                 anchor: new google.maps.Point(25, 75)
@@ -1088,6 +1671,42 @@
 
         document.querySelector('.close').addEventListener('click', closeMarkerModal);
 
+
+                // Funkcja do pobierania danych profilu i otwierania modala
+        async function showUserProfile(userName) {
+            try {
+                // Wywołanie API
+                const response = await fetch(`https://localhost:7109/api/profile/get/${userName}`);
+                const data = await response.json();
+
+                // Parsowanie danych profileData
+                const profileLines = data.profileData.split('\n');
+                const gender = profileLines.find(line => line.startsWith('Gender:')).split(': ')[1];
+                const age = profileLines.find(line => line.startsWith('Age:')).split(': ')[1];
+
+                // Wypełnienie pól w modalu
+                document.getElementById('modalGender').value = gender;
+                document.getElementById('modalAge').value = age;
+
+                // Ustawienie avataru
+                const modalAvatar = document.getElementById('modalAvatar');
+                if (data.avatarUrl) {
+                    modalAvatar.src = `https://localhost:7109${data.avatarUrl}`;
+                    modalAvatar.alt = `${userName}'s Avatar`;
+                } else {
+                    modalAvatar.src = ''; // Ukryj avatar, jeśli brak
+                    modalAvatar.alt = 'No Avatar';
+                }
+
+                // Otworzenie modala
+                const modal = new bootstrap.Modal(document.getElementById('userProfileModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Błąd podczas pobierania profilu:', error);
+                alert('Nie udało się pobrać danych użytkownika.');
+            }
+        }
+
         function openModal(marker) {
             const modal = document.getElementById('markerModal');
 
@@ -1138,17 +1757,21 @@
                     listItem.textContent = interest;
 
                     const avatar = document.createElement('img');
-                    const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
+                    const avatarUrl = `https://localhost:7109/uploads/${interest}/avatar.png`;
 
                     const img = new Image();
-                    img.onload = () => {
-                        avatar.src = avatarUrl;
-                        avatar.alt = `${interest}'s Avatar`;
-                        avatar.style.width = '30px';
-                        avatar.style.height = '30px';
-                        avatar.style.marginLeft = '10px';
-                        listItem.appendChild(avatar);
-                    };
+                            img.onload = () => {
+            avatar.src = avatarUrl;
+            avatar.alt = `${interest}'s Avatar`;
+            avatar.style.width = '30px';
+            avatar.style.height = '30px';
+            avatar.style.marginLeft = '10px';
+
+            // Event do otwierania modala z danymi użytkownika
+            avatar.addEventListener('click', () => showUserProfile(interest));
+
+            listItem.appendChild(avatar);
+        };
                     img.onerror = () => {
                         avatar.style.display = 'none';
                     };
@@ -1168,7 +1791,7 @@
                         listItem.textContent = interest;
 
                         const avatar = document.createElement('img');
-                        const avatarUrl = `https://SERVERIP/uploads/${interest}/avatar.png`;
+                        const avatarUrl = `https://localhost:7109/uploads/${interest}/avatar.png`;
 
                         const img = new Image();
                         img.onload = () => {
@@ -1257,7 +1880,7 @@
 
         window.onload = function () {
             initMap();
-        }
+        };
 
         window.addEventListener('click', function (event) {
             const markerModal = document.getElementById('markerModal');
@@ -1275,19 +1898,14 @@
         });
 
         document.addEventListener('DOMContentLoaded', fetchUserName);
+        
+        
+        
 
         document.getElementById('refreshButton').addEventListener('click', () => {
             location.reload();
         });
 
     </script>
-
-           
-
-    </div>
-
-
-    <div id="map"></div> 
- 
 
 </body>
