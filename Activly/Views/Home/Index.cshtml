@@ -6,16 +6,17 @@
 
 <head>
     <link rel="stylesheet" href="/css/style.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key=ApiKey&libraries=visualization&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=APIKEJ&libraries=geometry,visualization&callback=initMap" async defer></script>
 </head>
 
 <body>
     
-     <div id="buttonBlock" class="button-container" style="display:none;"> <!-- Guziki admina display:block-->
+     <div id="buttonBlock" class="button-container" style="display:block;"> <!-- Guziki admina display:block-->
         <button id="markingModeButton">Marking Mode</button>
         <button id="savePointsButton">Save Points</button>
         <button id="toggleHeatmap">Toggle Heatmap</button>
         <button id="drawCirclesButton">Draw Circles</button>
+        <button id="drawTrasyButton">Draw Trasy</button>
     </div>
 
 
@@ -159,10 +160,27 @@
                     <input type="range" id="sportswearLevel" min="0" max="10" value="5">
                     <span id="sportswearValue">5</span>/10
                 </div>
+
+                <div class="slider-container">
+                    <label id="dystansdotrasy" for="dystansdotrasyLevel">Dystans do trasy w KM</label>
+                    <input type="range" id="dystansdotrasyLevel" min="0" max="10" value="5">
+                    <span id="dystansdotrasyValue">5</span>/10
+                </div>
+
+                <div class="dropdown-container">
+                    <label id="dystanstrasy" for="dystanstrasyLevel">Dystans trasy</label>
+                    <select id="dystanstrasyLevel">
+                        <option value="5">5 KM</option>
+                        <option value="10">10 KM</option>
+                    </select>
+                    
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" id="closeM" class="close-btn" onclick="closeModal2()">Zamknij</button>
                     <button type="button" id="sendM" class="submit-btn" onclick="processSurvey()">Wyślij</button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -178,12 +196,15 @@
         <p><span id="markerDate"></span></p>
         <p><span id="markerActivity"></span></p>
         
-        <p>Zainteresowania:</p>
+        <p>Zainteresowani:</p>
+        <p>Rezerwowi:</p>
+
         <ul id="markerInterestList"></ul>
             <button onclick="addInterestedUser()">Add Me as Interested</button>
             <button onclick="removeInterestedUser()">Remove Me as Interested</button>
-        <p>Rezerwowi:</p>
+        
         <ul id="markerLobbyList"></ul>
+            <button id="DeletePin" style="display:none;">Usun Pin</button>
     </div>
         
 </div>
@@ -204,17 +225,88 @@
 
 
     <script>
+
+        function drawAllRoutes(map, routes) {
+            const groupColors = {
+                TrasaGrupa1: '#FF0000', 
+                TrasaGrupa2: '#0000FF', 
+            };
+
+            for (const groupName in routes) {
+                const group = routes[groupName];
+                const color = groupColors[groupName] || getRandomColor(); 
+
+                group.forEach(routeObj => {
+                    for (const routeName in routeObj) {
+                        const points = routeObj[routeName];
+
+                        const routePath = points.map(point => new google.maps.LatLng(point.lat, point.lng));
+
+                        const routeLine = new google.maps.Polyline({
+                            path: routePath,
+                            geodesic: true,
+                            strokeColor: color,
+                            strokeOpacity: 1.0,
+                            strokeWeight: 2
+                        });
+
+                        routeLine.setMap(map);
+
+                        new google.maps.Marker({
+                            position: routePath[0],
+                            map: map,
+                            title: `${routeName} - Start`
+                        });
+
+                        new google.maps.Marker({
+                            position: routePath[routePath.length - 1],
+                            map: map,
+                            title: `${routeName} - Koniec`
+                        });
+                    }
+                });
+            }
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+
+
+
+        let markersKosz = [];
+        let markersNoga = [];
+        
+        let markersSilownia =[];
+        let markersPlywalnia =[];
+        let markersBudynekSportowy =[];
+        let markersBoisko =[];
+
+
+        let representativeMarkersKosz = [];
+        let representativeMarkersNoga = [];
+
+        let representativeMarkersSilownia = [];
+        let representativeMarkersPlywalnia = [];
+        let representativeMarkersBudynekSportowy = [];
+        let representativeMarkersBoisko = [];
+
+        let markersInne;
                 document.addEventListener('DOMContentLoaded', () => {
-            loadTexts('en'); // Domyślne ładowanie tekstów
+            loadTexts('en'); 
         });
                async function loadTexts(language) {
             try {
                 const response = await fetch(`/localization/page-texts?lang=${language}`);
                 const data = await response.json();
 
-                console.log('Texts loaded:', data); // Sprawdź, czy teksty zostały poprawnie pobrane
-
-                // Aktualizacja elementów
+                console.log('Texts loaded:', data); 
 
                 const buttonEl1 = document.getElementById('getPointsButton');
                 const buttonEl2 = document.getElementById('getPointsButtonPlywalnia');
@@ -388,61 +480,354 @@
             routePath.setMap(map);
         }
 
-            const routes = {
-            TrasaGrupa1: [
-                       { Trasa1: [{   lat: 53.42814510965657, lng: 14.563782378002266 },
-                                    { lat: 53.429477939001295, lng: 14.564597769542793 },
-                                    { lat: 53.42990453661462, lng: 14.56337440405484 },
-                                    { lat: 53.42830962721764, lng: 14.562451724153718 }] },
+         const routes10 = {
 
-                       { Trasa2: [  { lat: 53.42853443379454, lng: 14.552271711332802 },
-                                    { lat: 53.43167943165026, lng: 14.554438936216835 },
-                                    { lat: 53.43459301800072, lng: 14.55367955439581 },
-                                    { lat: 53.4348103317564, lng: 14.555793135099545 },
-                                    { lat: 53.435027644400805, lng: 14.559805719785825 },
-                                    { lat: 53.432943953880404, lng: 14.558614818983212 },
-                                    { lat: 53.43161680364806, lng: 14.557874529295102 },
-                                    { lat: 53.43156335820688, lng: 14.557294634643885 },
-                                    { lat: 53.43123097014934, lng: 14.55714443093905 },
-                                    { lat: 53.43099446167941, lng: 14.557573584381434 },
-                                    { lat: 53.42851755948546, lng: 14.556301143630467 },
-                                    { lat: 53.428849968762414, lng: 14.553758409484349 }] },
-                       { Trasa3: [{ lat: 53.42853443379454, lng: 14.552271711332802 },
-                                    { lat: 53.43167943165026, lng: 14.554438936216835 },
-                                     { lat: 53.43459301800072, lng: 14.55367955439581 }] },
-                       { Trasa4: [{ lat: 53.43483863971441, lng: 14.53905876559895 },
-                                    { lat: 53.43574623160663, lng: 14.541676601597485 },
-                                     { lat: 53.436743282045896, lng: 14.540517887303052 }] }
-            ],
+            TrasaGrupa1: [
+                    {
+                        Trasa2: [
+                            { lat: 53.39494293092681, lng: 14.673501284326091 },
+                            { lat: 53.39447590654686, lng: 14.674391777719036 },
+                            { lat: 53.39425518776205, lng: 14.673833878243938 },
+                            { lat: 53.394744606131255, lng: 14.672814638818279 },
+                            { lat: 53.45239155704773, lng: 14.529384689265221 },
+                            { lat: 53.438896013921514, lng: 14.570926742487877 },
+                            { lat: 53.450796853557826, lng: 14.578919987161152 },
+                            { lat: 53.459587428025316, lng: 14.580636600930683 } ]
+                    },
+
+                    {
+                        Trasa3: [
+                            { lat: 53.44053206567799, lng: 14.531101303034752 },
+                            { lat: 53.43521466713973, lng: 14.538997726374596 },
+                            { lat: 53.43460107833618, lng: 14.54689414971444 }]
+                    },
+                    {
+                        Trasa8: [
+                            { lat: 53.38896616863557, lng: 14.71443565362069 },
+                            { lat: 53.39695069470527, lng: 14.718555526667565 },
+                            { lat: 53.40984561135107, lng: 14.730571823054284 },
+                            { lat: 53.41966768671783, lng: 14.753917770319909 },
+                            { lat: 53.42719640818279, lng: 14.768680648737877 }]
+                    },
+                
+                    {
+          
+                        Trasa11: [
+            
+                            { lat: 53.36217635940247, lng: 14.743274764948815 },
+                            { lat: 53.36606889161427, lng: 14.730228500300377 },
+                            { lat: 53.3711901027417, lng: 14.711345748835534 },
+                            { lat: 53.3759010732521, lng: 14.708255844050377 },
+                            { lat: 53.38450237059856, lng: 14.715808944636315 },
+                            { lat: 53.3871643248206, lng: 14.721302108698815 },
+                            { lat: 53.38532145116362, lng: 14.736064987116784 },
+                            { lat: 53.382864162194416, lng: 14.754604415827721 },
+                            { lat: 53.38122589075731, lng: 14.773487167292565 }
+          
+                        ]
+                
+                    },
+                
+                    {
+          
+                        Trasa15: [
+            
+                            { lat: 53.37688416663668, lng: 14.58809288018319 },
+                            { lat: 53.38200407758849, lng: 14.587749557429284 },
+                            { lat: 53.38732813199076, lng: 14.59083946221444 }]
+                    },
+
+                    {
+          
+                        Trasa19: [
+            
+                            { lat: 53.491831201274955, lng: 14.584316329890221 },
+                            { lat: 53.484885944201324, lng: 14.586376266413659 },
+                            { lat: 53.47405724581216, lng: 14.590496139460534 },
+                            { lat: 53.47017458659836, lng: 14.581226425105065 },
+                            { lat: 53.46322578353373, lng: 14.578479843073815 }]
+        
+                    }
+
+                    ],
+
             TrasaGrupa2: [
-        { Trasa4: [{ lat: 53.42853443379454, lng: 14.552271711332802 },
-                                           { lat: 53.43167943165026, lng: 14.554438936216835 },
-                                            { lat: 53.43459301800072, lng: 14.55367955439581 }] }
+                    {
+                        Trasa4: [
+                            { lat: 53.44781173336904, lng: 14.517711715632409 },
+                            { lat: 53.43860969963568, lng: 14.533504562312096 },
+                            { lat: 53.42490520066167, lng: 14.547237472468346 },
+                            { lat: 53.41464783813816, lng: 14.569244384765625 }
+                        ]
+                    },
+                    
+                    {
+          
+                        Trasa5: [
+
+                            { lat: 53.42785101677912, lng: 14.474109725886315 },
+                            { lat: 53.42037701085391, lng: 14.523582458496094 },
+                            { lat: 53.41966768671783, lng: 14.508098678523034 }
+                        ]
+                    },
+                
+                    {
+                        Trasa9: [
+            
+                            { lat: 53.37467217407144, lng: 14.587406234675377 },
+                            { lat: 53.37426253332675, lng: 14.573673324519127 },
+                            { lat: 53.37446735419157, lng: 14.558910446101159 },
+                            { lat: 53.37794915819386, lng: 14.548610763483971 }
+                        ]
+                    },
+
+                {
+         
+                    Trasa12: [
+            
+                        { lat: 53.37471313847613, lng: 14.594616012507409 },
+                        { lat: 53.376351660480026, lng: 14.58809288018319 },
+                        { lat: 53.3863862323012, lng: 14.586376266413659 },
+                        { lat: 53.39519013299324, lng: 14.585689620905846 },
+                        { lat: 53.40276412497129, lng: 14.582943038874596 },
+                        { lat: 53.40951816969273, lng: 14.57435997002694 },
+                        { lat: 53.42179550398569, lng: 14.552043991023034 },
+                        { lat: 53.42138631661203, lng: 14.530071334773034 }
+                    ]
+                },
+
+                {
+          
+                    Trasa16: [
+            
+                        { lat: 53.395435796894134, lng: 14.439090804987877 },
+                        { lat: 53.402395691458096, lng: 14.433597640925377 },
+                        { lat: 53.41140092412319, lng: 14.422611312800377 },
+                        { lat: 53.424905199100856, lng: 14.414714889460534 }
+                    ]
+                },
+                
+                {
+          
+                    Trasa20: [
+            
+                        { lat: 53.45055150816491, lng: 14.530757980280846 },
+                        { lat: 53.457911225397254, lng: 14.517711715632409 },
+                        { lat: 53.46159060572999, lng: 14.507068710261315 },
+                        { lat: 53.45811564378054, lng: 14.502262191706627 },
+                        { lat: 53.45668469443106, lng: 14.48646934502694 },
+                        { lat: 53.449120303919464, lng: 14.484752731257409 },
+                        { lat: 53.44053206567799, lng: 14.487499313288659 },
+                        { lat: 53.42866926315379, lng: 14.498485641413659 }
+                    ]
+                }
+           
             ],
-            TrasaGrupa3: []
+
+            TrasaGrupa3: [
+                    {
+                        Trasa6: [
+            
+                            { lat: 53.398219891008594, lng: 14.598735885554284 },
+                            { lat: 53.41050048632524, lng: 14.579509811335534 },
+                            { lat: 53.424209628787914, lng: 14.549297408991784 },
+                            { lat: 53.42037701085391, lng: 14.523582458496094 },
+                            { lat: 53.42605081868766, lng: 14.482692794733971 }
+                        ]
+                },
+                
+                {
+          
+                    Trasa7: [
+            
+                        { lat: 53.40313255451333, lng: 14.508098678523034 },
+                        { lat: 53.40768994782367, lng: 14.513626098632812 },
+                        { lat: 53.41316081476703, lng: 14.531787948542565 }]
+                },
+                
+                {
+          
+                    Trasa10: [
+            
+                        { lat: 53.36647861057439, lng: 14.598392562800377 },
+                        { lat: 53.37037074974658, lng: 14.603885726862877 },
+                        { lat: 53.373852888642176, lng: 14.600109176569909 },
+                        { lat: 53.37508181087621, lng: 14.59083946221444 },
+                        { lat: 53.37426253332675, lng: 14.574016647273034 },
+                        { lat: 53.37549144374112, lng: 14.557537155085534 },
+                        { lat: 53.38450237001271, lng: 14.531101303034752 },
+                        { lat: 53.39084983223286, lng: 14.50569541924569 },
+                        { lat: 53.403541917536636, lng: 14.504665450983971 }
+                    ]
+                },
+                
+                {
+          
+                    Trasa13: [
+            
+                        { lat: 53.49346521413608, lng: 14.482349471980065 },
+                        { lat: 53.477326578067185, lng: 14.487499313288659 },
+                        { lat: 53.46056858762039, lng: 14.499858932429284 },
+                        { lat: 53.448302451269655, lng: 14.519085006648034 },
+                        { lat: 53.4376689337633, lng: 14.53590782158944 }
+                    ]
+                },
+                
+                {
+          
+                    Trasa14: [
+            
+                        { lat: 53.40968189088578, lng: 14.707569198542565 },
+                        { lat: 53.41275154493303, lng: 14.720272140437096 },
+                        { lat: 53.416844072394234, lng: 14.731601791316002 },
+                        { lat: 53.42032241109851, lng: 14.740184860163659 }
+                    ]
+                },
+                
+                {
+          
+                    Trasa17: [
+            
+                        { lat: 53.45124664664429, lng: 14.368022994929284 },
+                        { lat: 53.44306782093979, lng: 14.369739608698815 },
+                        { lat: 53.43386475960968, lng: 14.367336349421471 },
+                        { lat: 53.421590910400866, lng: 14.359439926081627 },
+                        { lat: 53.401536001243954, lng: 14.353946762019127 },
+                        { lat: 53.3947806892262, lng: 14.348453597956627 }]
+                },
+                
+                {
+          
+                    Trasa18: [
+            
+                        { lat: 53.46935713939596, lng: 14.560283737116784 },
+                        { lat: 53.46322578353373, lng: 14.557193832331627 },
+                        { lat: 53.4517782162777, lng: 14.552043991023034 },
+                        { lat: 53.44380398020821, lng: 14.548954086237877 },
+                        { lat: 53.435419194772216, lng: 14.545177535944909 },
+                        { lat: 53.42130447874277, lng: 14.53041465752694 }
+                    ]
+                }
+            ]
         };
 
+         const routes5 = {
+                                    TrasaGrupa1: [
+                                      {
+                                      Trasa21: [
+                                        { lat: 53.49632458514812, lng: 14.583286361628502 },
+                                        { lat: 53.48876725746187, lng: 14.58534629815194 },
+                                        { lat: 53.47303552782603, lng: 14.59083946221444 },
+                                        { lat: 53.462816994987136, lng: 14.576763229304284 },
+                                        { lat: 53.47099201805706, lng: 14.559940414362877 },
+                                        { lat: 53.4711963734618, lng: 14.547924117976159 }]
+                                        },
+                                      {
+                                      Trasa22: [
+                                        { lat: 53.44053206567799, lng: 14.410251693659752 },
+                                        { lat: 53.4538226510654, lng: 14.414028243952721 },
+                                        { lat: 53.45811564378054, lng: 14.423641281062096 },
+                                        { lat: 53.45300488896028, lng: 14.436687545710534 },
+                                        { lat: 53.45648026915895, lng: 14.457286910944909 },
+                                        { lat: 53.45473583996399, lng: 14.497146606445312 },
+                                        { lat: 53.43869150302261, lng: 14.523891525202721 }
+                                      ]
+                                    },
+                                    {
+                                      Trasa23: [
+                                        { lat: 53.40411501977689, lng: 14.724048690730065 },
+                                        { lat: 53.41148278144348, lng: 14.738468246394127 },
+                                        { lat: 53.41762160808078, lng: 14.756664352351159 }
+                                      ]
+                                    },
+                                            {
+                                      Trasa24: [
+                                        { lat: 53.48202580190396, lng: 14.523204879694909 },
+                                        { lat: 53.47916546677058, lng: 14.517711715632409 },
+                                        { lat: 53.47773522688857, lng: 14.502605514460534 },
+                                        { lat: 53.47180943377217, lng: 14.486126022273034 }
+                                      ]
+                                    }
+                                    
+                                    ],
+                                    TrasaGrupa2: [
+                                                {
+                                                  Trasa25: [
+                                                    { lat: 53.35762779234835, lng: 14.608005599909752 },
+                                                    { lat: 53.363364643825854, lng: 14.618991928034752 },
+                                                    { lat: 53.36500360239273, lng: 14.642681198054284 },
+                                                    { lat: 53.36152074007853, lng: 14.664310531550377 },
+                                                    { lat: 53.37135397137137, lng: 14.698642806941002 }
+                                                  ]
+                                                },
+                                                {
+                                                  Trasa26: [
+                                                    { lat: 53.482965585462175, lng: 14.353260116511315 },
+                                                    { lat: 53.47295379057168, lng: 14.356006698542565 },
+                                                    { lat: 53.46232644478298, lng: 14.357036666804284 }
+                                                  ]
+                                                },
+                                                 {
+                                              Trasa27: [
+                                                { lat: 53.4396322462558, lng: 14.563030319148034 },
+                                                { lat: 53.4465576861502, lng: 14.578170776367188 },
+                                                { lat: 53.45149198880163, lng: 14.572643356257409 }
+                                              ]
+                                            }
+                                     
+                            ],
 
+                            TrasaGrupa3: [
+                                     {
+                                      Trasa28: [
+                                        { lat: 53.43910052383615, lng: 14.47273643487069 },
+                                        { lat: 53.44073656771822, lng: 14.449733810358971 },
+                                        { lat: 53.44564432140198, lng: 14.433597640925377 },
+                                        { lat: 53.45770680602983, lng: 14.413341598444909 },
+                                        { lat: 53.47773522688857, lng: 14.419178085261315 }
+                                      ]
+                                    },
+                                            {
+                                      Trasa29: [
+                                        { lat: 53.4266236176844, lng: 14.370426254206627 },
+                                        { lat: 53.415780053130234, lng: 14.374546127253502 },
+                                        { lat: 53.40165881564137, lng: 14.378666000300377 },
+                                        { lat: 53.387123372978394, lng: 14.390682296687096 }
+                                      ]
+                                    },
+                                            {
+                                      Trasa30: [
+                                        { lat: 53.3700020365677, lng: 14.696239547663659 },
+                                        { lat: 53.36488068260894, lng: 14.683879928523034 },
+                                        { lat: 53.3616026929724, lng: 14.66499717705819 },
+                                        { lat: 53.36570014061468, lng: 14.635814742976159 },
+                                        { lat: 53.36262709182393, lng: 14.617275314265221 }
+                                      ]
+                                    }
+                            
+                            ]
+        };
 
-
-
-        function findNearestRoute(groupName, startLocation) {
-            const group = routes[groupName];
+        function findNearestRoute10(groupName, startLocation,howFar) {
+            const group = routes10[groupName];
 
             if (!group) {
                 throw new Error(`Grupa "${groupName}" nie istnieje.`);
             }
 
             let nearestRoute = null;
-            let shortestDistance = Infinity;
+            let shortestDistance =  100;
             let nearestRoutePoints = [];
 
             group.forEach((route) => {
                 for (const routeName in route) {
-                    const points = route[routeName]; 
-                    const firstPoint = points[0]; 
+                    const points = route[routeName];
+                    const firstPoint = points[0];
                     const distance = getDistanceInKm(startLocation.lat, startLocation.lng, firstPoint.lat, firstPoint.lng);
-
+                    if(distance >howFar)
+                    {
+                        return;
+                    }
                     if (distance < shortestDistance) {
                         shortestDistance = distance;
                         nearestRoute = { routeName, distance };
@@ -454,11 +839,38 @@
             return nearestRoutePoints ;
         }
 
+        function findNearestRoute5(groupName, startLocation, howFar) {
+            const group = routes5[groupName];
 
+            if (!group) {
+                throw new Error(`Grupa "${groupName}" nie istnieje.`);
+            }
 
+            let nearestRoute = null;
+            let shortestDistance = 100;
+            let nearestRoutePoints = [];
 
+            group.forEach((route) => {
+                for (const routeName in route) {
+                    const points = route[routeName]; 
+                    const firstPoint = points[0]; 
+                    const distance = getDistanceInKm(startLocation.lat, startLocation.lng, firstPoint.lat, firstPoint.lng);
 
+                    if(distance >howFar)
+                    {
+                        return;
+                    }
 
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        nearestRoute = { routeName, distance };
+                        nearestRoutePoints = points;
+                    }
+                }
+            });
+
+            return nearestRoutePoints ;
+        }
 
         ///
         function openModal2() {
@@ -472,6 +884,8 @@
         const experienceInput = document.getElementById('experienceLevel');
         const willingnessInput = document.getElementById('willingnessLevel');
         const sportswearInput = document.getElementById('sportswearLevel');
+        const dystansdotrasyInput = document.getElementById('dystansdotrasyLevel')
+
 
         experienceInput.addEventListener('input', () => {
             document.getElementById('experienceValue').textContent = experienceInput.value;
@@ -485,6 +899,12 @@
             document.getElementById('sportswearValue').textContent = sportswearInput.value;
         });
 
+
+        dystansdotrasyInput.addEventListener('input', () => {
+            document.getElementById('dystansdotrasyValue').textContent = dystansdotrasyInput.value;
+        });
+
+        
         function processSurvey() {
             
             const experience = parseInt(experienceInput.value);
@@ -492,40 +912,55 @@
             const sportswear = parseInt(sportswearInput.value);
 
             const totalScore = experience + willingness + sportswear;
-
+            const dropdown = document.getElementById('dystanstrasyLevel');
+            const howFarTrasa = parseInt(dystansdotrasyInput.value);
             let message = '';
-            switch (true) {
+            
+            if(dropdown.value==5)
+            {
+                switch (true) {
+                    case (totalScore <= 10):
+                        message = 'Jesteś początkujący, zacznij od małych kroków!';
+                               drawRoute(findNearestRoute5('TrasaGrupa1', user_location,howFarTrasa));
+                        break;
+                    case (totalScore <= 20):
+                        message = 'Jesteś na dobrej drodze! Przygotuj się do regularnego biegania.';
+                               drawRoute(findNearestRoute5('TrasaGrupa2', user_location,howFarTrasa));
+                        break;
+                    case (totalScore > 20):
+                        message = 'Jesteś świetnie przygotowany! Czas na wyzwania.';
+                        drawRoute(findNearestRoute5('TrasaGrupa3', user_location,howFarTrasa));
+                        break;
+                    default:
+                        message = 'Wprowadź poprawne wartości.';
+                    }
+            }
+            else
+            {
+                switch (true) {
                 case (totalScore <= 10):
                     message = 'Jesteś początkujący, zacznij od małych kroków!';
-                           drawRoute(findNearestRoute('TrasaGrupa1', user_location));
+                           drawRoute(findNearestRoute10('TrasaGrupa1', user_location,howFarTrasa));
                     break;
                 case (totalScore <= 20):
                     message = 'Jesteś na dobrej drodze! Przygotuj się do regularnego biegania.';
-                           drawRoute(findNearestRoute('TrasaGrupa2', user_location));
+                           drawRoute(findNearestRoute10('TrasaGrupa2', user_location,howFarTrasa));
                     break;
                 case (totalScore > 20):
                     message = 'Jesteś świetnie przygotowany! Czas na wyzwania.';
-                    drawRoute(findNearestRoute('TrasaGrupa3', user_location));
+                    drawRoute(findNearestRoute10('TrasaGrupa3', user_location,howFarTrasa));
                     break;
                 default:
                     message = 'Wprowadź poprawne wartości.';
+            }
             }
 
             alert(message);
             closeModal2();
         }
 
-
-
-
-
-
-
-
-
         ////
         let heatmap = null;
-
 
         document.querySelectorAll('.activityButton').forEach(button => {
             button.addEventListener('click', function () {
@@ -534,7 +969,6 @@
             });
         });
 
-
         ///Alert modal
         let alertTime;
         let alertTimeRange;
@@ -542,7 +976,6 @@
 
 
         const alertModal = document.getElementById("alertModal");
-        //const openModalBtn = document.getElementById("openModalBtn");
         const submitBtn = document.getElementById("submitBtn");
         const cancelBtn = document.getElementById("cancelBtn");
         
@@ -811,6 +1244,13 @@
 
         function drawPolygonBoiskoNumber(points,number)
         {
+            var customIcon = {
+                        url: `https://localhost:7109/uploads/icons/Boisko.png`,
+                        scaledSize: new google.maps.Size(50, 75),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(25, 75)
+                    };
+
             const polygon = new google.maps.Polygon({
                 paths: points,
                 strokeColor: '#FF00FF',
@@ -826,12 +1266,20 @@
                 position: points[1],
                 map: map,
                 label: number.toString(),
-                icon: null
+                icon: customIcon
             });
+
+            markersBoisko.push(label);
         }
 
         function drawPolygonPlywalniaNumber(points,number)
                 {
+                    var customIcon = {
+                        url: `https://localhost:7109/uploads/icons/plywalnia.png`,
+                        scaledSize: new google.maps.Size(50, 75),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(25, 75)
+                    };
                     const polygon = new google.maps.Polygon({
                         paths: points,
                         strokeColor: '#00FF00',
@@ -847,12 +1295,20 @@
                         position: points[1],
                         map: map,
                         label: number.toString(),
-                        icon: null
+                        icon: customIcon
                     });
+
+                     markersPlywalnia.push(label);
                 }
        
         function drawPolygonSilowniaNumber(points,number)
                 {
+                    var customIcon = {
+                        url: `https://localhost:7109/uploads/icons/silownia.png`,
+                        scaledSize: new google.maps.Size(50, 75),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(25, 75)
+                    };
                     const polygon = new google.maps.Polygon({
                         paths: points,
                         strokeColor: '#0000FF',
@@ -868,12 +1324,20 @@
                         position: points[1],
                         map: map,
                         label: number.toString(),
-                        icon: null
+                        icon: customIcon
                     });
+
+                    markersSilownia.push(label);
                 }
 
         function drawPolygonBudynekSportowyNumber(points,number)
                 {
+                    var customIcon = {
+                        url: `https://localhost:7109/uploads/icons/BudynekSportowy.png`,
+                        scaledSize: new google.maps.Size(50, 75),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(25, 75)
+                    };
                     const polygon = new google.maps.Polygon({
                         paths: points,
                         strokeColor: '#FFFF00',
@@ -889,8 +1353,9 @@
                         position: points[1],
                         map: map,
                         label: number.toString(),
-                        icon: null
+                        icon: customIcon
                     });
+                    markersBudynekSportowy.push(label);
                 }
           
         document.getElementById('getPointsButtonBoisko').addEventListener('click', function () {
@@ -1250,11 +1715,7 @@
                 center: location
             });
 
-
-            var marker = new google.maps.Marker({
-                position: location,
-                map: map
-            });
+            
 
 
             user_marker = new google.maps.Marker({
@@ -1290,6 +1751,7 @@
                         date = userDate;
                         activity = userActivity;
                         timeStr = userTime;
+                        
                         addMarker(currentLatLng, userName, timeStr, activity, null, true , userDate);
                     }
                 });
@@ -1304,11 +1766,80 @@
 
                     user_marker.setPosition(latLng);
 
-                    user_location.lat = latLng.lat();  // Pobranie szerokości geograficznej
-                    user_location.lng = latLng.lng();  // Pobranie długości geograficznej
+                    user_location.lat = latLng.lat();  
+                    user_location.lng = latLng.lng();  
                 }
             });
 
+            map.addListener("zoom_changed", () => {
+            const currentZoom = map.getZoom();
+            console.log(`Zoom został zmieniony na: ${currentZoom}`);
+
+            let maxDistance = 25000 / currentZoom; 
+
+            representativeMarkersKosz.forEach(marker => marker.setMap(null));
+            representativeMarkersKosz = [];
+
+            representativeMarkersNoga.forEach(marker => marker.setMap(null));
+            representativeMarkersNoga = [];
+
+            representativeMarkersSilownia.forEach(marker => marker.setMap(null));
+            representativeMarkersSilownia = [];
+
+            representativeMarkersPlywalnia.forEach(marker => marker.setMap(null));
+            representativeMarkersPlywalnia = [];
+
+            representativeMarkersBudynekSportowy.forEach(marker => marker.setMap(null));
+            representativeMarkersBudynekSportowy = [];
+
+            representativeMarkersBoisko.forEach(marker => marker.setMap(null));
+            representativeMarkersBoisko = [];
+
+             if (currentZoom < 9) {
+                 maxDistance = 100000;
+             }
+            if (currentZoom > 11) {
+
+                markersKosz.forEach(marker => marker.setMap(map));
+                markersNoga.forEach(marker => marker.setMap(map));
+
+                markersSilownia.forEach(marker => marker.setMap(map));
+                markersPlywalnia.forEach(marker => marker.setMap(map));
+                markersBudynekSportowy.forEach(marker => marker.setMap(map));
+                markersBoisko.forEach(marker => marker.setMap(map));
+
+            } else {
+
+                markersKosz.forEach(marker => marker.setMap(null));
+                markersNoga.forEach(marker => marker.setMap(null));
+
+                markersSilownia.forEach(marker => marker.setMap(null));
+                markersPlywalnia.forEach(marker => marker.setMap(null));
+                markersBudynekSportowy.forEach(marker => marker.setMap(null));
+                markersBoisko.forEach(marker => marker.setMap(null));
+
+
+                representativeMarkersKosz = groupMarkersByDistance(markersKosz, maxDistance);
+                representativeMarkersNoga = groupMarkersByDistance(markersNoga, maxDistance);
+
+                representativeMarkersSilownia = groupMarkersByDistance(markersSilownia, maxDistance);
+                representativeMarkersPlywalnia = groupMarkersByDistance(markersPlywalnia, maxDistance);
+                representativeMarkersBudynekSportowy = groupMarkersByDistance(markersBudynekSportowy, maxDistance);
+                representativeMarkersBoisko = groupMarkersByDistance(markersBoisko, maxDistance);
+
+
+                representativeMarkersKosz.forEach(marker => marker.setMap(map));
+                representativeMarkersNoga.forEach(marker => marker.setMap(map));
+
+                representativeMarkersSilownia.forEach(marker => marker.setMap(map));
+                representativeMarkersPlywalnia.forEach(marker => marker.setMap(map));
+                representativeMarkersBudynekSportowy.forEach(marker => marker.setMap(map));
+                representativeMarkersBoisko.forEach(marker => marker.setMap(map));
+
+            }
+            
+            
+        });
 
             fetchPins();
 
@@ -1339,6 +1870,59 @@
         document.getElementById('toggleHeatmap').addEventListener('click', () => {
             toggleHeatmap();
         });
+
+        function groupMarkersByDistance(markers, maxDistance) {
+
+            const marker1 = markers[1];
+            const groups = [];
+            const processed = new Set();
+
+            
+            markers.forEach((marker, i) => {
+                if (processed.has(i)) return;
+
+                const group = [marker];
+                processed.add(i);
+
+                markers.forEach((otherMarker, j) => {
+                    if (i !== j && !processed.has(j)) {
+                        const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                            marker.getPosition(),
+                            otherMarker.getPosition()
+                        );
+
+                        if (distance < maxDistance) {
+                            group.push(otherMarker);
+                            processed.add(j);
+                        }
+                    }
+                });
+
+                groups.push(group);
+            });
+
+            const representativeMarkers = groups.map(group => {
+                const avgLat = group.reduce((sum, m) => sum + m.getPosition().lat(), 0) / group.length;
+                const avgLng = group.reduce((sum, m) => sum + m.getPosition().lng(), 0) / group.length;
+
+                 return new google.maps.Marker({
+                    position: { lat: avgLat, lng: avgLng }, 
+                    icon: marker1.getIcon(),
+                    label: {
+                    text: `${group.length}`,         
+                    color: "red",                      
+                    fontSize: "16px",                  
+                    fontWeight: "bold"                 
+                },
+            map: map });
+            });
+
+            return representativeMarkers;
+        }
+
+
+           
+
 
         function loadHeatmapData() {
             fetch('https://localhost:7109/api/pin/heatmap')
@@ -1387,8 +1971,6 @@
             }
         }
 
-
-        // Funkcja do aktywowania trybu dodawania punktów
         function activateAddingMode() {
             addingMode = true;
             points = []; 
@@ -1472,6 +2054,7 @@
 
 
         function fetchPins() {
+            console.log("fetchPins() called");
             fetch('https://localhost:7109/api/pin')
                 .then(response => response.json())
                 .then(pins => {
@@ -1493,7 +2076,7 @@
                                     const location = new google.maps.LatLng(latitude, longitude);
 
 
-
+                                    console.log("w");
 
                                     addMarker(
                                         location,
@@ -1523,7 +2106,23 @@
                 });
         }
 
+            function isMarkerInArray(array, marker) {
+            return array.some(existingMarker => {
+
+                const existingPos = existingMarker.getPosition();
+                const newPos = marker.getPosition();
+
+                return (
+                    existingPos.lat() === newPos.lat() &&
+                    existingPos.lng() === newPos.lng() &&
+                    existingMarker.activity === marker.activity &&
+                    existingMarker.author === marker.author
+                );
+            });
+        }
         function addMarker(location, author, time, activity, interests, fromUser, userDate) {
+            
+            
             test = new google.maps.LatLng(location.lat, location.lng);
 
             let iconFileName = activity; 
@@ -1591,6 +2190,38 @@
                         savePin(currentLatLng, authorTrim, timeTrim, activityTrim, userDate);
                         markers.push(marker);
 
+                       switch (activity) {
+                                case "Koszykowka":
+                                    if (!isMarkerInArray(markersKosz, marker)) {
+                                        markersKosz.push(marker);
+                                        console.log("Dodano marker do markersKosz");
+                                    } else {
+                                        console.log("Marker już istnieje w markersKosz");
+                                    }
+                                    break;
+
+                                case "Inne":
+                                    if (!isMarkerInArray(markersInne, marker)) {
+                                        markersInne.push(marker);
+                                        console.log("Dodano marker do markersInne");
+                                    } else {
+                                        console.log("Marker już istnieje w markersInne");
+                                    }
+                                    break;
+
+                                case "Pilka_nozna":
+                                    if (!isMarkerInArray(markersNoga, marker)) {
+                                        markersNoga.push(marker);
+                                        console.log("Dodano marker do markersInne");
+                                    } else {
+                                        console.log("Marker już istnieje w markersInne");
+                                    }
+                                    break;
+
+                                default:
+                                    console.log("Nieznana kategoria: " + activity);
+                            }
+
                     });
 
                     return; 
@@ -1627,9 +2258,44 @@
                 openModal(marker);
             });
 
-
-            markers.push(marker);
            
+           markers.push(marker);
+
+           switch (activity) {
+                                case "Koszykowka":
+                                    if (!isMarkerInArray(markersKosz, marker)) {
+                                        markersKosz.push(marker);
+                                        console.log("Dodano marker do markersKosz");
+                                    } else {
+                                        console.log("Marker już istnieje w markersKosz");
+                                    }
+                                    break;
+
+                                case "Inne":
+                                    if (!isMarkerInArray(markersInne, marker)) {
+                                        markersInne.push(marker);
+                                        console.log("Dodano marker do markersInne");
+                                    } else {
+                                        console.log("Marker już istnieje w markersInne");
+                                    }
+                                    break;
+
+                                case "Pilka_nozna":
+                                    if (!isMarkerInArray(markersNoga, marker)) {
+                                        markersNoga.push(marker);
+                                        console.log("Dodano marker do markersInne");
+                                    } else {
+                                        console.log("Marker już istnieje w markersInne");
+                                    }
+                                    break;
+
+                                default:
+                                    console.log("Nieznana kategoria: " + activity);
+                            }
+           
+
+       
+
         }
 
         //Merge
@@ -1668,7 +2334,30 @@
 
         document.querySelector('.close').addEventListener('click', closeMarkerModal);
 
-
+        function deletePin(username, time, date, activity) {
+            fetch('https://localhost:7109/api/pin/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    time: time,
+                    date: date,
+                    activity: activity
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Pin successfully deleted');
+                } else {
+                    alert('Failed to delete pin');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
                
         async function showUserProfile(userName) {
             try {
@@ -1710,9 +2399,22 @@
             document.getElementById('markerActivity').textContent = `Aktywność: ${marker.activity || "Brak aktywności"}`;
             document.getElementById('markerDate').textContent = `Data: ${marker.date || "Brak daty"}`;
 
+            const button = document.getElementById("DeletePin"); 
+
+            if(marker.author==userName)
+            {
+                 //button.style.display = "blocky";
+            }
+
+           
+
+            
+            button.addEventListener("click", () => {
+                deletePin(marker.author,marker.time,marker.date,marker.activity);
+            });
 
             let maxInterestCount;
-            //max = -1
+
             switch (marker.activity) { 
 
                 case 'Koszykowka':
@@ -1760,7 +2462,6 @@
             avatar.style.height = '30px';
             avatar.style.marginLeft = '10px';
 
-            // Event do otwierania modala z danymi użytkownika
             avatar.addEventListener('click', () => showUserProfile(interest));
 
             listItem.appendChild(avatar);
@@ -1774,9 +2475,6 @@
                 });
 
                 if (reserves.length > 0) {
-                    //const reserveTitle = document.createElement('p');
-                    //reserveTitle.textContent = ':';
-                    //lobbyList.appendChild(reserveTitle);
 
                     reserves.forEach(interest => {
                         if (interest.trim() === '') return;
@@ -1846,6 +2544,13 @@
             return distance <= radius;
         });
 
+        document.getElementById('drawTrasyButton').addEventListener('click', () => {
+        
+            drawAllRoutes(map, routes10);
+            drawAllRoutes(map, routes5);
+        });
+        
+
         document.getElementById('drawCirclesButton').addEventListener('click', () => {
 
             if (window.markerCircles) {
@@ -1871,9 +2576,7 @@
             console.log("Narysowano okręgi wokół wszystkich pinów.");
         });
 
-        window.onload = function () {
-            initMap();
-        };
+       
 
         window.addEventListener('click', function (event) {
             const markerModal = document.getElementById('markerModal');
@@ -1900,5 +2603,4 @@
         });
 
     </script>
-
 </body>
