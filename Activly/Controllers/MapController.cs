@@ -62,5 +62,67 @@ namespace Activly2.Controllers
 
             return Ok(lines);
         }
+
+
+        [HttpGet("GetPointsBoisko")]
+        public IActionResult GetPointsBoisko()
+        {
+            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("Plik z punktami nie istnieje.");
+            }
+
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            return Ok(lines);
+        }
+
+        [HttpGet("GetPointsSilownia")]
+        public IActionResult GetPointsSilownia()
+        {
+            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("Plik z punktami nie istnieje.");
+            }
+
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            return Ok(lines);
+        }
+
+        [HttpGet("GetPointsPlywalnia")]
+        public IActionResult GetPointsPlywalnia()
+        {
+            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("Plik z punktami nie istnieje.");
+            }
+
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            return Ok(lines);
+        }
+
+        [HttpGet("GetPointsBudynekSportowy")]
+        public IActionResult GetPointsBudynekSportowy()
+        {
+            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("Plik z punktami nie istnieje.");
+            }
+
+            var lines = System.IO.File.ReadAllLines(filePath);
+
+            return Ok(lines);
+        }
+
     }
 }
