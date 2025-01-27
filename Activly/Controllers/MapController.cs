@@ -82,7 +82,7 @@ namespace Activly2.Controllers
         [HttpGet("GetPointsSilownia")]
         public IActionResult GetPointsSilownia()
         {
-            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+            var filePath = Path.Combine(_env.WebRootPath, "pointsSilownia.txt");
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -97,7 +97,7 @@ namespace Activly2.Controllers
         [HttpGet("GetPointsPlywalnia")]
         public IActionResult GetPointsPlywalnia()
         {
-            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+            var filePath = Path.Combine(_env.WebRootPath, "pointsPlywalnia.txt");
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -112,7 +112,7 @@ namespace Activly2.Controllers
         [HttpGet("GetPointsBudynekSportowy")]
         public IActionResult GetPointsBudynekSportowy()
         {
-            var filePath = Path.Combine(_env.WebRootPath, "pointsBoisko.txt");
+            var filePath = Path.Combine(_env.WebRootPath, "pointsBudynekSportowy.txt");
 
             if (!System.IO.File.Exists(filePath))
             {
